@@ -5,14 +5,14 @@ var jqPlotChart, flotChart;
 function centralize() {
     function f(chart, plot) {
         $("#" + chart).position({
-            my : "center bottom-10",
-            at : "center bottom",
+            my : "center center",
+            at : "center center",
             of : "#" + plot
         });
     }
 
-    f("jqPlotChart", "plotJqPlot");
-    f("flotChart", "plotFlot")
+    //f("jqPlotChart", "plotJqPlot");
+    f("flotChart", "plots")
 }
 
 function initRValue() {
@@ -66,26 +66,9 @@ function getData() {
         x = y;
     }
     data[2].splice(1, 1); // workaround 
-    console.debug(data[2]);
+//    console.debug(data[2]);
 
     return data;
-}
-
-function plotJqPlotChart(data) {
-    jqPlotChart = $.jqplot('jqPlotChart', data, {
-            axesDefaults : {
-                min : 0.0,
-                max : 1.0,
-                tickInterval : 0.1
-            },
-            seriesDefaults : {
-                showMarker : false,
-                lineWidth : 1.5,
-                markerOptions : {
-                    lineWidth : 1,
-                },
-            },
-        });
 }
 
 function dataToFlotData(data) {
@@ -109,32 +92,17 @@ function plotFlotchart(data) {
         ticks : 11,
         tickDecimals : 1,
     };
-    flotChart = $.plot("#flotChart", dataToFlotData(data), {
+    flotChart = $.plot("#jqPlotChart", dataToFlotData(data), {
             xaxis : axisConfig,
             yaxis : axisConfig,
         });
 }
 
 function refreshCharts() {
-    var t0 = Date.now();
     var data = getData();
-    var dataTime = (Date.now() - t0);
 
-    // FLOT - Average time = 6 ms
-    var t0 = Date.now();
     flotChart.setData(dataToFlotData(data));
     flotChart.draw();
-    var flotTime = (Date.now() - t0);
-
-    // JQPLOT - Average time = 54 ms
-    var t0 = Date.now();
-    jqPlotChart.series[0].data = data[0];
-    jqPlotChart.series[1].data = data[1];
-    jqPlotChart.series[2].data = data[2];
-    jqPlotChart.replot();
-    var plotTime = (Date.now() - t0);
-
-    //    console.debug($("#rValue").spinner("value") + "\t" + dataTime + "\t" + flotTime + "\t" + plotTime);
 }
 
 $(document).ready(function () {
@@ -144,6 +112,6 @@ $(document).ready(function () {
     initRValue();
     initX0Value();
     var initialData = getData();
-    plotJqPlotChart(initialData);
+//    plotJqPlotChart(initialData);
     plotFlotchart(initialData);
 });
