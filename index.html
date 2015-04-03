@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta charset="utf-8">
+    <title>JS Logistic Map</title>
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <link rel="stylesheet" type="text/css" href="css/jquery-ui.min.css">
+    <link rel="stylesheet" type="text/css" href="css/jquery-ui.structure.min.css">
+    <link rel="stylesheet" type="text/css" href="css/jquery-ui.theme.min.css">
+    <link rel="stylesheet" type="text/css" href="css/jquery.jqplot.min.css">
+    <script type="text/javascript" src="./js/jquery-1.11.2.min.js"></script>
+    <script type="text/javascript" src="./js/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="./js/jquery.mousewheel.min.js"></script>
+    <script type="text/javascript" src="./js/jquery.jqplot.min.js"></script>
+    <script type="text/javascript" src="./js/jquery.flot.js"></script>
+    <script type="text/javascript" src="./js/logistic.js"></script>
+</head>
+
+<body>
+    <div id="main">
+        <h1>JS Logistic Map</h1>
+        <div id="plots">
+            <div id="plotJqPlot" class="plot_demo">
+                <h2>JQPlot</h2>
+                <div id="jqPlotChart" class="coweb_chart"></div>
+            </div>
+            <div id="plotFlot" class="plot_demo">
+                <h2>Flot</h2>
+                <div id="flotChart" class="coweb_chart"></div>
+            </div>
+        </div>
+        <div>
+            <label for="rValue">R = </label>
+            <input id="rValue" name="rValue" value="4.00">
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,41 @@
+body {
+    font-family: sans-serif;
+}
+
+#main {
+    width: 100%;
+}
+
+h1 {
+    white-space: nowrap;
+    text-align: center;
+}
+
+#plots {
+    display: flex;
+    display: -ms-inline-flexbox;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.plot_demo {
+    border-width: 2px;
+    border-style: dotted;
+    display: table-cell;
+    width: 50%;
+}
+
+.plot_demo  h2 {
+    text-align: center;
+}
+
+.coweb_chart {
+    border-width: 1px;
+    border-style: dashed;
+    height:400px;
+    width:400px;
+}
+
+#rValue {
+    width: 100px;
+}
