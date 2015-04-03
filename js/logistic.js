@@ -16,28 +16,55 @@ function centralize() {
 }
 
 function initRValue() {
-    var refresh = function (event, ui) {
-        var r = $(this).spinner("value");
-        refreshCharts(r);
-    }
-
-    var spinner = $("#rValue").spinner({
-            min : 0.00,
-            max : 4.00,
-            step : 0.01,
-            numberFormat : "n",
-            spin : refresh,
-            change : refresh
-        });
-
-    spinner.focus();
-    return spinner.spinner("value");
+    $("#rValue").spinner({
+        min : 0.00,
+        max : 4.00,
+        step : 0.01,
+        numberFormat : "n",
+        spin : refreshCharts,
+        change : refreshCharts
+    }).focus();
 }
 
-function getData(r) {
-    var data = [[], [[0, 0], [1, 1]]];
+function initX0Value() {
+    $("#x0Value").spinner({
+        min : 0.00,
+        max : 1.00,
+        step : 0.01,
+        numberFormat : "n",
+        spin : refreshCharts,
+        change : refreshCharts
+    });
+}
+
+function getData() {
+    function y(x, r) {
+        return (r * x * (1 - x));
+    }
+
+    var data = [[], [[0, 0], [1, 1]], []];
+
+    var r = $("#rValue").spinner("value");
     for (var x = 0; x <= 1.02; x += 0.02) {
-        data[0].push([x, (r * x * (1 - x))]);
+        data[0].push([x, y(x, r)]);
+    }
+
+    var x0 = $("#x0Value").spinner("value");
+    var _x = x0;
+    //            data[2].push(p1);
+    //      data[2].push(p0);
+    var _y = 0;
+    for (var it = 1; it <= 100; it++) {
+        var p0 = [_y, _x];
+        var p1 = [_x, _x];
+
+        //        console.debug("{[" + p0 + "], [" + p1 + "]}")
+
+        data[2].push(p0);
+        data[2].push(p1);
+
+        _y = _x;
+        _x = y(_x, r);
     }
 
     return data;
@@ -61,20 +88,17 @@ function plotJqPlotChart(data) {
 }
 
 function dataToFlotData(data) {
-    return [{
-            color : 1,
-            data : data[0],
+    function getData(colorIndex, dataIndex) {
+        return {
+            color : colorIndex,
+            data : data[dataIndex],
             lines : {
                 show : true,
             }
-        }, {
-            color : 0,
-            data : data[1],
-            lines : {
-                show : true
-            }
-        }
-    ];
+        };
+    }
+
+    return [getData(1, 0), getData(0, 1), getData(2, 2)];
 }
 
 function plotFlotchart(data) {
@@ -90,9 +114,9 @@ function plotFlotchart(data) {
         });
 }
 
-function refreshCharts(r) {
+function refreshCharts() {
     var t0 = Date.now();
-    var data = getData(r);
+    var data = getData();
     var dataTime = (Date.now() - t0);
 
     // FLOT - Average time = 6 ms
@@ -105,20 +129,20 @@ function refreshCharts(r) {
     var t0 = Date.now();
     jqPlotChart.series[0].data = data[0];
     jqPlotChart.series[1].data = data[1];
+    jqPlotChart.series[2].data = data[2];
     jqPlotChart.replot();
     var plotTime = (Date.now() - t0);
 
-    console.debug(r + "\t" + dataTime + "\t" + flotTime + "\t" + plotTime);
+    //    console.debug($("#rValue").spinner("value") + "\t" + dataTime + "\t" + flotTime + "\t" + plotTime);
 }
 
 $(document).ready(function () {
-
     $(window).resize(centralize);
 
     centralize();
-
-    var r = initRValue();
-    var initialData = getData(r);
+    initRValue();
+    initX0Value();
+    var initialData = getData();
     plotJqPlotChart(initialData);
     plotFlotchart(initialData);
 });

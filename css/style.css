@@ -36,6 +36,10 @@ h1 {
     width:400px;
 }
 
-#rValue {
+label {
+    width: 50px;
+}
+
+#rValue, #x0Value {
     width: 100px;
 }
