@@ -3,46 +3,48 @@
 var jqPlotChart, flotChart;
 
 function centralize() {
-    $("#jqPlotChart").position({
-        my : "center bottom-10",
-        at : "center bottom",
-        of : "#plotJqPlot"
-    });
-    $("#flotChart").position({
-        my : "center bottom-10",
-        at : "center bottom",
-        of : "#plotFlot"
-    });
+    function f(chart, plot) {
+        $("#" + chart).position({
+            my : "center bottom-10",
+            at : "center bottom",
+            of : "#" + plot
+        });
+    }
+
+    f("jqPlotChart", "plotJqPlot");
+    f("flotChart", "plotFlot")
 }
 
 function initRValue() {
-    var spinner = $("#rValue").spinner({
-        min : 0.00,
-        max : 4.00,
-        step : 0.01,
-        numberFormat : "n",
-        spin : function (event, ui) {
-            var r = $(this).spinner("value");
-            console.debug(r);
-           plotJqPlotChart(r);
-           plotFlotchart(r);
-        }
-    });
+    var refresh = function (event, ui) {
+        var r = $(this).spinner("value");
+        refreshCharts(r);
+    }
 
+    var spinner = $("#rValue").spinner({
+            min : 0.00,
+            max : 4.00,
+            step : 0.01,
+            numberFormat : "n",
+            spin : refresh,
+            change : refresh
+        });
+
+    spinner.focus();
     return spinner.spinner("value");
 }
 
 function getData(r) {
-    var data = [[], []];
-    for (var x = 0; x <= 1.01; x += 0.01) {
+    var data = [[], [[0, 0], [1, 1]]];
+    for (var x = 0; x <= 1.02; x += 0.02) {
         data[0].push([x, (r * x * (1 - x))]);
-        data[1].push([x, x]);
     }
+
     return data;
 }
 
-function plotJqPlotChart(r) {
-    jqPlotChart = $.jqplot('jqPlotChart', [], {
+function plotJqPlotChart(data) {
+    jqPlotChart = $.jqplot('jqPlotChart', data, {
             axesDefaults : {
                 min : 0.0,
                 max : 1.0,
@@ -55,41 +57,58 @@ function plotJqPlotChart(r) {
                     lineWidth : 1,
                 },
             },
-            dataRenderer : function () {
-                return getData(r);
-            }
         });
 }
 
-function plotFlotchart(r) {
-    var data = getData(r);
-    flotChart = $.plot("#flotChart", [{
-                    color : 1,
-                    data : data[0],
-                    lines : {
-                        show : true,
-                    }
-                }, {
-                    color : 0,
-                    data : data[1],
-                    lines : {
-                        show : true
-                    }
-                }
-            ], {
-            xaxis : {
-                min : 0.0,
-                max : 1.0,
-                ticks : 11,
-                tickDecimals : 1,
-            },
-            yaxis : {
-                min : 0.0,
-                max : 1.0,
-                ticks : 11,
-                tickDecimals : 1,
-            },
+function dataToFlotData(data) {
+    return [{
+            color : 1,
+            data : data[0],
+            lines : {
+                show : true,
+            }
+        }, {
+            color : 0,
+            data : data[1],
+            lines : {
+                show : true
+            }
+        }
+    ];
+}
+
+function plotFlotchart(data) {
+    var axisConfig = {
+        min : 0.0,
+        max : 1.0,
+        ticks : 11,
+        tickDecimals : 1,
+    };
+    flotChart = $.plot("#flotChart", dataToFlotData(data), {
+            xaxis : axisConfig,
+            yaxis : axisConfig,
         });
+}
+
+function refreshCharts(r) {
+    var t0 = Date.now();
+    var data = getData(r);
+    var dataTime = (Date.now() - t0);
+
+    // FLOT - Average time = 6 ms
+    var t0 = Date.now();
+    flotChart.setData(dataToFlotData(data));
+    flotChart.draw();
+    var flotTime = (Date.now() - t0);
+
+    // JQPLOT - Average time = 54 ms
+    var t0 = Date.now();
+    jqPlotChart.series[0].data = data[0];
+    jqPlotChart.series[1].data = data[1];
+    jqPlotChart.replot();
+    var plotTime = (Date.now() - t0);
+
+    console.debug(r + "\t" + dataTime + "\t" + flotTime + "\t" + plotTime);
 }
 
 $(document).ready(function () {
@@ -99,18 +118,7 @@ $(document).ready(function () {
     centralize();
 
     var r = initRValue();
-    plotJqPlotChart(r);
-    plotFlotchart(r);
+    var initialData = getData(r);
+    plotJqPlotChart(initialData);
+    plotFlotchart(initialData);
 });
-
-function refreshCharts(r) {
-    var data = getData(r);
-
-    jqPlotChart.dataRenderer = function () {
-        return data;
-    }
-    jqPlotChart.replot();
-    
-    flotChart.getData()[0] = data[0];
-    flotChart.getData()[1] = data[1];
-}
