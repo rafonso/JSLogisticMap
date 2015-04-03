@@ -38,34 +38,35 @@ function initX0Value() {
 }
 
 function getData() {
-    function y(x, r) {
+    function f(x, r) {
         return (r * x * (1 - x));
     }
 
-    var data = [[], [[0, 0], [1, 1]], []];
+    var data = [[], [[0, 0], [1, 1]], [], []];
 
     var r = $("#rValue").spinner("value");
     for (var x = 0; x <= 1.02; x += 0.02) {
-        data[0].push([x, y(x, r)]);
+        data[0].push([x, f(x, r)]);
     }
 
-    var x0 = $("#x0Value").spinner("value");
-    var _x = x0;
-    //            data[2].push(p1);
-    //      data[2].push(p0);
-    var _y = 0;
-    for (var it = 1; it <= 100; it++) {
-        var p0 = [_y, _x];
-        var p1 = [_x, _x];
-
-        //        console.debug("{[" + p0 + "], [" + p1 + "]}")
-
-        data[2].push(p0);
-        data[2].push(p1);
-
-        _y = _x;
-        _x = y(_x, r);
+    var x = $("#x0Value").spinner("value");;
+    data[3].push(x);
+    for (var it = 1; it < 100; it++) {
+        x = f(x, r);
+        data[3].push(x);
     }
+
+    x =  data[3][0];
+    var y = 0;
+    data[2].push([x, y]);
+    for(var it = 1; it < data[3].length; it++) {
+        y = data[3][it];
+        data[2].push([x, x]);
+        data[2].push([x, y]);
+        x = y;
+    }
+    data[2].splice(1, 1); // workaround 
+    console.debug(data[2]);
 
     return data;
 }
