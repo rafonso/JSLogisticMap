@@ -54,3 +54,7 @@ h1 {
 .spinner {
     width: 50px;
 }
+
+#iteractionsValue {
+    text-align: right;
+}
