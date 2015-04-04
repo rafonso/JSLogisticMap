@@ -1,9 +1,18 @@
 body {
     font-family: sans-serif;
+    display: table;
+}
+
+body > * {
+    display: table-row;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    
 }
 
 #main {
-    width: 100%;
+    /*    width: 100%;*/
+    
 }
 
 h1 {
@@ -15,18 +24,7 @@ h1 {
     display: flex;
     display: -ms-inline-flexbox;
     border-collapse: collapse;
-    width: 100%;
-}
-
-.plot_demo {
-    border-width: 2px;
-    border-style: dotted;
-    display: table-cell;
-    width: 50%;
-}
-
-.plot_demo  h2 {
-    text-align: center;
+    /*width: 100%;*/
 }
 
 .coweb_chart {
@@ -36,10 +34,23 @@ h1 {
     width:400px;
 }
 
-label {
-    width: 50px;
+#controls .row_controls {
+    display: table-row;
+    width: 300px;
 }
 
-#rValue, #x0Value {
+#controls .row_controls > *{
+    display: table-cell;
+    padding-left: 10px;
+    padding-right: 10px;
+    vertical-align: baseline;
+}
+
+#controls label {
     width: 100px;
+    text-align: right;
+}
+
+.spinner {
+    width: 50px;
 }
