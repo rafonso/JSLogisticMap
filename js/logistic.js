@@ -1,34 +1,39 @@
 // 123
+
+function formatValue(value, precision) {
+    function repeat0(times) {
+        var zeros = "";
+        while (zeros.length < times) {
+            zeros += "0";
+        }
+        return zeros;
+    }
+
+    if (value === "") {
+        return "";
+    }
+
+    var strValue = value.toString();
+    var posDecimal = strValue.indexOf(".");
+    if (posDecimal < 0) {
+        return value + "." + repeat0(precision);
+    }
+
+    var intValue = strValue.substring(0, posDecimal);
+    var decimalValue = strValue.substring(posDecimal + 1);
+    if (decimalValue.length === precision) {
+        return value.toString();
+    }
+
+    return intValue + "."
+     + decimalValue
+     + repeat0(precision - decimalValue.length);
+
+}
+
 $.widget("ui.logisticspinner", $.ui.spinner, {
     _format : function (value) {
-        function repeat0(times) {
-            var zeros = "";
-            while (zeros.length < times) {
-                zeros += "0";
-            }
-            return zeros;
-        }
-
-        if (value === "") {
-            return "";
-        }
-
-        var precision = this._precision();
-        var strValue = value.toString();
-        var posDecimal = strValue.indexOf(".");
-        if (posDecimal < 0) {
-            return value + "." + repeat0(precision);
-        }
-
-        var intValue = strValue.substring(0, posDecimal);
-        var decimalValue = strValue.substring(posDecimal + 1);
-        if (decimalValue.length === precision) {
-            return value.toString();
-        }
-
-        return intValue + "."
-         + decimalValue
-         + repeat0(precision - decimalValue.length);
+        return formatValue(value, this._precision());
     }
 });
 
@@ -42,17 +47,19 @@ function centralize() {
     });
 }
 
-function getData() {
+function spinnerToValue(id) {
+    var key = (id === "iteractionsValue")? "spinner": "logisticspinner";
+    return $("#" + id)[key]("value");
+}
+
+function getData(x0, r, numberOfIteractions) {
     function f(x, r) {
         return (r * x * (1 - x));
     }
 
-    var r = $("#rValue").logisticspinner("value");
-    var numberOfIeractions = $("#iteractionsValue").spinner("value");
-
     var data = {
         parabol : {
-            label : "R = " + r,
+            label : "R = " + formatValue(r, 4),
             labelIndex : 0,
             data : []
         },
@@ -60,7 +67,7 @@ function getData() {
             data : [[0, 0], [1, 1]]
         },
         logistic : {
-            label : "Iteractions = " + numberOfIeractions,
+            label : "Iteractions = " + numberOfIteractions,
             labelIndex : 1,
             data : []
         },
@@ -73,9 +80,9 @@ function getData() {
         data.parabol.data.push([x, f(x, r)]);
     }
 
-    var x = $("#x0Value").logisticspinner("value");
+    var x = x0;
     data.iteractions.data.push(x);
-    for (var it = 0; it < numberOfIeractions; it++) {
+    for (var it = 0; it < numberOfIteractions; it++) {
         x = f(x, r);
         data.iteractions.data.push(x);
     }
@@ -98,8 +105,19 @@ function getData() {
     return data;
 }
 
-function refreshCharts() {
-    var data = getData();
+function refreshCharts(event, ui) {
+    var data = {};
+    if (!ui.value) {
+        data = getData(spinnerToValue("x0Value"), spinnerToValue("rValue"), spinnerToValue("iteractionsValue"));
+    } else if (event.target.id === "rValue") {
+        data = getData(spinnerToValue("x0Value"), ui.value, spinnerToValue("iteractionsValue"));
+    } else if (event.target.id === "x0Value") {
+        data = getData(ui.value, spinnerToValue("rValue"), spinnerToValue("iteractionsValue"));
+    } else if (event.target.id === "iteractionsValue") {
+        data = getData(spinnerToValue("x0Value"), spinnerToValue("rValue"), ui.value);
+    } else {
+        throw new Error("Unknown origin: " + event.target);
+    }
 
     flotChart.setData(dataToFlotData(data));
     flotChart.draw();
@@ -161,13 +179,15 @@ function initIteractionsValue() {
 
 function dataToFlotData(data) {
     function getData(colorIndex, dataIndex) {
-        if (data[dataIndex].labelIndex !== undefined && $("#jqPlotChart .legend .legendLabel").length) {
-            $("#jqPlotChart .legend .legendLabel")[data[dataIndex].labelIndex].innerHTML = data[dataIndex].label;
+        var _data = data[dataIndex];
+        var legend = $("#jqPlotChart .legend .legendLabel");
+        if (_data.labelIndex !== undefined && legend.length) {
+            legend[_data.labelIndex].innerHTML = _data.label;
         }
         return {
             color : colorIndex,
-            data : data[dataIndex].data,
-            label : data[dataIndex].label,
+            data : _data.data,
+            label : _data.label,
             lines : {
                 show : true,
                 lineWidth : 2,
@@ -213,7 +233,6 @@ $(document).ready(function () {
     initFloatSpinner("rValue", 4.00).focus();
     initFloatSpinner("x0Value", 1.00);
     initIteractionsValue();
-    var initialData = getData();
-    //    plotJqPlotChart(initialData);
+    var initialData = getData(spinnerToValue("x0Value"), spinnerToValue("rValue"), spinnerToValue("iteractionsValue"));
     plotFlotchart(initialData);
 });
