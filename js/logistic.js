@@ -26,15 +26,18 @@ $.widget("ui.logisticspinner", $.ui.spinner, {
             return value.toString();
         }
 
-        return intValue + "." + decimalValue + repeat0(precision - decimalValue.length);
+        return intValue + "."
+         + decimalValue
+         + repeat0(precision - decimalValue.length);
     }
 });
 
 var flotChart, iteractionsChart;
 
+var steps = [0.1, 0.01, 0.001, 0.0001];
 
 function centralize() {
-    $("body > *").position({
+    $("#main").position({
         of : "body"
     });
 }
@@ -128,7 +131,9 @@ function initFloatSpinner(id, max) {
     .mousedown(changeStep)
     .bind("contextmenu", function () {
         return false;
-    });
+    })
+//    .tooltip()
+    ;
 }
 
 function initIteractionsValue() {
