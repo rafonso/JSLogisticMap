@@ -1,4 +1,13 @@
-// 123
+var flotChart, iteractionsChart;
+
+var steps = [0.1, 0.01, 0.001, 0.0001, 0.00001];
+
+var heatTrail = [
+    "rgba(255, 0, 0, 0.10)", 
+    "rgba(255, 0, 0, 0.30)", 
+    "rgba(255, 0, 0, 0.50)", 
+    "rgba(255, 0, 0, 0.70)", 
+    "rgba(255, 0, 0, 0.90)"];
 
 function formatValue(value, precision) {
     function repeat0(times) {
@@ -37,10 +46,6 @@ $.widget("ui.logisticspinner", $.ui.spinner, {
     }
 });
 
-var flotChart, iteractionsChart;
-
-var steps = [0.1, 0.01, 0.001, 0.0001];
-
 function centralize() {
     $("#main").position({
         of : "body"
@@ -48,7 +53,7 @@ function centralize() {
 }
 
 function spinnerToValue(id) {
-    var key = (id === "iteractionsValue")? "spinner": "logisticspinner";
+    var key = (id === "iteractionsValue") ? "spinner" : "logisticspinner";
     return $("#" + id)[key]("value");
 }
 
@@ -59,7 +64,7 @@ function getData(x0, r, numberOfIteractions) {
 
     var data = {
         parabol : {
-            label : "R = " + formatValue(r, 4),
+            label : "R = " + formatValue(r, 5),
             labelIndex : 0,
             data : []
         },
@@ -67,7 +72,6 @@ function getData(x0, r, numberOfIteractions) {
             data : [[0, 0], [1, 1]]
         },
         logistic : {
-            label : "Iteractions = " + numberOfIteractions,
             labelIndex : 1,
             data : []
         },
@@ -178,24 +182,49 @@ function initIteractionsValue() {
 }
 
 function dataToFlotData(data) {
-    function getData(colorIndex, dataIndex) {
-        var _data = data[dataIndex];
-        var legend = $("#jqPlotChart .legend .legendLabel");
-        if (_data.labelIndex !== undefined && legend.length) {
-            legend[_data.labelIndex].innerHTML = _data.label;
+    var flotData = [];
+
+    // parabol
+    flotData.push({
+        color : 1,
+        data : data.parabol.data,
+        label : data.parabol.label,
+        lines : {
+            show : true,
+            lineWidth : 2,
         }
-        return {
-            color : colorIndex,
-            data : _data.data,
-            label : _data.label,
+    });
+    var legend = $("#jqPlotChart .legend .legendLabel");
+    if (legend.length) {
+        legend[0].innerHTML = data.parabol.label;
+    }
+
+    // line
+    flotData.push({
+        color : 0,
+        data : data.line.data,
+        lines : {
+            show : true,
+            lineWidth : 2,
+        }
+    });
+
+    // logistic
+    var stageSize = data.logistic.data.length / heatTrail.length;
+    for (var stage = 0; stage < heatTrail.length; stage++) {
+        var startStage = stage * stageSize;
+        var endStage = startStage + stageSize;
+        flotData.push({
+            color : heatTrail[stage],
+            data : data.logistic.data.slice(startStage, endStage),
             lines : {
                 show : true,
                 lineWidth : 2,
             }
-        };
+        });
     }
 
-    return [getData(1, "parabol"), getData(0, "line"), getData(2, "logistic")];
+    return flotData;
 }
 
 function plotFlotchart(data) {
@@ -213,17 +242,21 @@ function plotFlotchart(data) {
             }
         });
     /*
-    var iteractionsAxisConfig = {
+    iteractionsChart = $.plot("#iteractionsChart", data.iteractions.data, {
+    xaxis : {
     min : 0,
-    max : data[3].lenght,
-    //        ticks : 11,
-    //        tickDecimals : 1,
-    };
-    iteractionsChart = $.plot("#iteractionsChart", data[3], {
-    xaxis : iteractionsAxisConfig,
-    yaxis : iteractionsAxisConfig,
+    max : data.iteractions.data.lenght,
+    },
+    yaxis : {
+    min : 0.0,
+    max : 1.0,
+    },
+    lines : {
+    show : true,
+    }
     });
      */
+
 }
 
 $(document).ready(function () {
