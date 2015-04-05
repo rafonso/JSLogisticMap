@@ -1,6 +1,37 @@
 // 123
+$.widget("ui.logisticspinner", $.ui.spinner, {
+    _format : function (value) {
+        function repeat0(times) {
+            var zeros = "";
+            while (zeros.length < times) {
+                zeros += "0";
+            }
+            return zeros;
+        }
+
+        if (value === "") {
+            return "";
+        }
+
+        var precision = this._precision();
+        var strValue = value.toString();
+        var posDecimal = strValue.indexOf(".");
+        if (posDecimal < 0) {
+            return value + "." + repeat0(precision);
+        }
+
+        var intValue = strValue.substring(0, posDecimal);
+        var decimalValue = strValue.substring(posDecimal + 1);
+        if (decimalValue.length === precision) {
+            return value.toString();
+        }
+
+        return intValue + "." + decimalValue + repeat0(precision - decimalValue.length);
+    }
+});
 
 var flotChart, iteractionsChart;
+
 
 function centralize() {
     $("body > *").position({
@@ -20,13 +51,13 @@ function getData() {
         iteractions : []
     };
 
-    var r = $("#rValue").spinner("value");
+    var r = $("#rValue").logisticspinner("value");
     for (var x = 0; x <= 1.02; x += 0.02) {
         data.parabol.push([x, f(x, r)]);
     }
 
-    var x = $("#x0Value").spinner("value"); 
-    var numberOfIeractions = $("#iteractionsValue").spinner("value");;
+    var x = $("#x0Value").logisticspinner("value");
+    var numberOfIeractions = $("#iteractionsValue").spinner("value"); ;
     data.iteractions.push(x);
     for (var it = 0; it < numberOfIeractions; it++) {
         x = f(x, r);
@@ -58,31 +89,53 @@ function refreshCharts() {
     flotChart.draw();
 }
 
-function initRValue() {
-    $("#rValue").spinner({
+function initFloatSpinner(id, max) {
+    var spinnerOptions = {
         min : 0.00,
-        max : 4.00,
-        step : 0.01,
+        max : max,
+        stepPos : 1,
+        step : steps[1],
         numberFormat : "n",
         spin : refreshCharts,
         change : refreshCharts
-    }).focus();
-}
+    };
+    var changeStep = function (event) {
+        if (!event.ctrlKey) {
+            return;
+        }
 
-function initX0Value() {
-    $("#x0Value").spinner({
-        min : 0.00,
-        max : 1.00,
-        step : 0.01,
-        numberFormat : "n",
-        spin : refreshCharts,
-        change : refreshCharts
+        var stepPos = $(this).logisticspinner("option", "stepPos");
+
+        var delta = 0;
+        if ((event.which === 1) && (stepPos > 0)) {
+            // Left Button
+            delta = -1;
+        } else if ((event.which === 3) && (stepPos < (steps.length - 1))) {
+            // Right Button
+            delta = +1;
+        }
+
+        if (!!delta) {
+            stepPos += delta;
+            $(this)
+            .logisticspinner("option", "step", steps[stepPos])
+            .logisticspinner("option", "stepPos", stepPos);
+        }
+    };
+
+    return $("#" + id)
+    .logisticspinner(spinnerOptions)
+    .mousedown(changeStep)
+    .bind("contextmenu", function () {
+        return false;
     });
 }
 
 function initIteractionsValue() {
     $("#iteractionsValue").spinner({
+        min : 0,
         max : 2000,
+        step : 25,
         spin : refreshCharts,
         change : refreshCharts
     });
@@ -95,7 +148,7 @@ function dataToFlotData(data) {
             data : data[dataIndex],
             lines : {
                 show : true,
-                lineWidth: 2,
+                lineWidth : 2,
             }
         };
     }
@@ -132,8 +185,8 @@ $(document).ready(function () {
     $(window).resize(centralize);
 
     centralize();
-    initRValue();
-    initX0Value();
+    initFloatSpinner("rValue", 4.00).focus();
+    initFloatSpinner("x0Value", 1.00);
     initIteractionsValue();
     var initialData = getData();
     //    plotJqPlotChart(initialData);
