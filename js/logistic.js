@@ -47,39 +47,52 @@ function getData() {
         return (r * x * (1 - x));
     }
 
+    var r = $("#rValue").logisticspinner("value");
+    var numberOfIeractions = $("#iteractionsValue").spinner("value");
+
     var data = {
-        parabol : [],
-        line : [[0, 0], [1, 1]],
-        logistic : [],
-        iteractions : []
+        parabol : {
+            label : "R = " + r,
+            labelIndex : 0,
+            data : []
+        },
+        line : {
+            data : [[0, 0], [1, 1]]
+        },
+        logistic : {
+            label : "Iteractions = " + numberOfIeractions,
+            labelIndex : 1,
+            data : []
+        },
+        iteractions : {
+            data : []
+        }
     };
 
-    var r = $("#rValue").logisticspinner("value");
     for (var x = 0; x <= 1.02; x += 0.02) {
-        data.parabol.push([x, f(x, r)]);
+        data.parabol.data.push([x, f(x, r)]);
     }
 
     var x = $("#x0Value").logisticspinner("value");
-    var numberOfIeractions = $("#iteractionsValue").spinner("value"); ;
-    data.iteractions.push(x);
+    data.iteractions.data.push(x);
     for (var it = 0; it < numberOfIeractions; it++) {
         x = f(x, r);
-        data.iteractions.push(x);
+        data.iteractions.data.push(x);
     }
 
-    x = data.iteractions[0];
+    x = data.iteractions.data[0];
     var y = 0;
-    data.logistic.push([x, y]);
-    for (var it = 1; it < data.iteractions.length; it++) {
-        y = data.iteractions[it];
-        data.logistic.push([x, x]);
-        data.logistic.push([x, y]);
+    data.logistic.data.push([x, y]);
+    for (var it = 1; it < data.iteractions.data.length; it++) {
+        y = data.iteractions.data[it];
+        data.logistic.data.push([x, x]);
+        data.logistic.data.push([x, y]);
         x = y;
     }
-    data.logistic.splice(1, 1); // workaround
+    data.logistic.data.splice(1, 1); // workaround
 
-    for (var it = 0; it < data.iteractions.length; it++) {
-        data.iteractions[it] = [it, data.iteractions[it]];
+    for (var it = 0; it < data.iteractions.data.length; it++) {
+        data.iteractions.data[it] = [it, data.iteractions.data[it]];
     }
 
     return data;
@@ -132,8 +145,8 @@ function initFloatSpinner(id, max) {
     .bind("contextmenu", function () {
         return false;
     })
-//    .tooltip()
-    ;
+    //    .tooltip()
+;
 }
 
 function initIteractionsValue() {
@@ -148,9 +161,13 @@ function initIteractionsValue() {
 
 function dataToFlotData(data) {
     function getData(colorIndex, dataIndex) {
+        if (data[dataIndex].labelIndex !== undefined && $("#jqPlotChart .legend .legendLabel").length) {
+            $("#jqPlotChart .legend .legendLabel")[data[dataIndex].labelIndex].innerHTML = data[dataIndex].label;
+        }
         return {
             color : colorIndex,
-            data : data[dataIndex],
+            data : data[dataIndex].data,
+            label : data[dataIndex].label,
             lines : {
                 show : true,
                 lineWidth : 2,
@@ -171,6 +188,9 @@ function plotFlotchart(data) {
     flotChart = $.plot("#jqPlotChart", dataToFlotData(data), {
             xaxis : axisConfig,
             yaxis : axisConfig,
+            legend : {
+                position : "nw"
+            }
         });
     /*
     var iteractionsAxisConfig = {
