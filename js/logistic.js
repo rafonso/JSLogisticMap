@@ -3,10 +3,10 @@ var flotChart, iteractionsChart;
 var steps = [0.1, 0.01, 0.001, 0.0001, 0.00001];
 
 var heatTrail = [
-    "rgba(255, 0, 0, 0.10)", 
-    "rgba(255, 0, 0, 0.30)", 
+    "rgba(255, 0, 0, 0.20)", 
+    "rgba(255, 0, 0, 0.40)", 
     "rgba(255, 0, 0, 0.50)", 
-    "rgba(255, 0, 0, 0.70)", 
+    "rgba(255, 0, 0, 0.75)", 
     "rgba(255, 0, 0, 0.90)"];
 
 function formatValue(value, precision) {
@@ -187,6 +187,7 @@ function dataToFlotData(data) {
     // parabol
     flotData.push({
         color : 1,
+        shadowSize: 0,
         data : data.parabol.data,
         label : data.parabol.label,
         lines : {
@@ -202,6 +203,7 @@ function dataToFlotData(data) {
     // line
     flotData.push({
         color : 0,
+        shadowSize: 0,
         data : data.line.data,
         lines : {
             show : true,
@@ -216,10 +218,12 @@ function dataToFlotData(data) {
         var endStage = startStage + stageSize;
         flotData.push({
             color : heatTrail[stage],
+            shadowSize: 0,
             data : data.logistic.data.slice(startStage, endStage),
             lines : {
                 show : true,
-                lineWidth : 2,
+                lineWidth : 1,
+                steps: false,
             }
         });
     }
