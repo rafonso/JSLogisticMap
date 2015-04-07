@@ -3,10 +3,10 @@ var flotChart, iteractionsChart;
 var steps = [0.1, 0.01, 0.001, 0.0001, 0.00001];
 
 var heatTrail = [
-    "rgba(255, 0, 0, 0.20)", 
-    "rgba(255, 0, 0, 0.40)", 
-    "rgba(255, 0, 0, 0.50)", 
-    "rgba(255, 0, 0, 0.75)", 
+    "rgba(255, 0, 0, 0.20)",
+    "rgba(255, 0, 0, 0.40)",
+    "rgba(255, 0, 0, 0.50)",
+    "rgba(255, 0, 0, 0.75)",
     "rgba(255, 0, 0, 0.90)"];
 
 function formatValue(value, precision) {
@@ -111,6 +111,7 @@ function getData(x0, r, numberOfIteractions) {
 
 function refreshCharts(event, ui) {
     var data = {};
+    var t0 = Date.now();
     if (!ui.value) {
         data = getData(spinnerToValue("x0Value"), spinnerToValue("rValue"), spinnerToValue("iteractionsValue"));
     } else if (event.target.id === "rValue") {
@@ -122,9 +123,20 @@ function refreshCharts(event, ui) {
     } else {
         throw new Error("Unknown origin: " + event.target);
     }
+    console.debug(ui.value + ": " + (Date.now() - t0));
 
+    t0 = Date.now();
     flotChart.setData(dataToFlotData(data));
     flotChart.draw();
+    console.debug("\tPlotting: " + (Date.now() - t0));
+/*
+    // Drawing iteractons
+    console.debug(data.iteractions.data);
+    iteractionsChart.setData(data.iteractions.data);
+    iteractionsChart.getOptions().xaxes[0].max = data.iteractions.data.length;
+    iteractionsChart.setupGrid();
+    iteractionsChart.draw();
+*/
 }
 
 function initFloatSpinner(id, max) {
@@ -187,7 +199,7 @@ function dataToFlotData(data) {
     // parabol
     flotData.push({
         color : 1,
-        shadowSize: 0,
+        shadowSize : 0,
         data : data.parabol.data,
         label : data.parabol.label,
         lines : {
@@ -203,7 +215,7 @@ function dataToFlotData(data) {
     // line
     flotData.push({
         color : 0,
-        shadowSize: 0,
+        shadowSize : 0,
         data : data.line.data,
         lines : {
             show : true,
@@ -218,12 +230,11 @@ function dataToFlotData(data) {
         var endStage = startStage + stageSize;
         flotData.push({
             color : heatTrail[stage],
-            shadowSize: 0,
+            shadowSize : 0,
             data : data.logistic.data.slice(startStage, endStage),
             lines : {
                 show : true,
                 lineWidth : 1,
-                steps: false,
             }
         });
     }
@@ -245,22 +256,23 @@ function plotFlotchart(data) {
                 position : "nw"
             }
         });
-    /*
+/*
     iteractionsChart = $.plot("#iteractionsChart", data.iteractions.data, {
-    xaxis : {
-    min : 0,
-    max : data.iteractions.data.lenght,
-    },
-    yaxis : {
-    min : 0.0,
-    max : 1.0,
-    },
-    lines : {
-    show : true,
-    }
-    });
-     */
-
+            color : "green",
+            xaxis : {
+                min : 0,
+                max : data.iteractions.data.length,
+            },
+            yaxis : {
+                min : 0.0,
+                max : 1.0,
+            },
+            points : {
+                show : true,
+                lineWidth : 1,
+            }
+        });
+*/
 }
 
 $(document).ready(function () {
