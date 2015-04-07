@@ -111,7 +111,7 @@ function getData(x0, r, numberOfIteractions) {
 
 function refreshCharts(event, ui) {
     var data = {};
-    var t0 = Date.now();
+    //    var t0 = Date.now();
     if (!ui.value) {
         data = getData(spinnerToValue("x0Value"), spinnerToValue("rValue"), spinnerToValue("iteractionsValue"));
     } else if (event.target.id === "rValue") {
@@ -123,23 +123,65 @@ function refreshCharts(event, ui) {
     } else {
         throw new Error("Unknown origin: " + event.target);
     }
-    console.debug(ui.value + ": " + (Date.now() - t0));
+    //    console.debug(ui.value + ": " + (Date.now() - t0));
 
     t0 = Date.now();
     flotChart.setData(dataToFlotData(data));
     flotChart.draw();
-    console.debug("\tPlotting: " + (Date.now() - t0));
-/*
+    //    console.debug("\tPlotting: " + (Date.now() - t0));
+    /*
     // Drawing iteractons
     console.debug(data.iteractions.data);
     iteractionsChart.setData(data.iteractions.data);
     iteractionsChart.getOptions().xaxes[0].max = data.iteractions.data.length;
     iteractionsChart.setupGrid();
     iteractionsChart.draw();
-*/
+     */
 }
 
 function initFloatSpinner(id, max) {
+
+    function changeStep(id, decreaseStep) {
+        var stepPos = $("#" + id).logisticspinner("option", "stepPos");
+        var delta = 0;
+        if (!decreaseStep && (stepPos > 0)) {
+            delta = -1;
+        } else if (decreaseStep && (stepPos < (steps.length - 1))) {
+            delta = +1;
+        }
+
+        if (!!delta) {
+            stepPos += delta;
+            $("#" + id)
+            .logisticspinner("option", "step", steps[stepPos])
+            .logisticspinner("option", "stepPos", stepPos);
+        }
+    }
+
+    function handleMouse(event) {
+        if (!event.ctrlKey) {
+            return;
+        }
+
+        if (event.which === 1) { // Left Button
+            changeStep(event.target.id, false);
+        } else if (event.which === 3) { // Right Button
+            changeStep(event.target.id, true);
+        }
+    }
+
+    function handleKey(event) {
+        if (!event.ctrlKey) {
+            return;
+        }
+
+        if (event.keyCode === 37) { // Arrow Left
+            changeStep(event.target.id, false);
+        } else if (event.keyCode === 39) { // Arrow Right
+            changeStep(event.target.id, true);
+        }
+    }
+
     var spinnerOptions = {
         min : 0.00,
         max : max,
@@ -149,33 +191,11 @@ function initFloatSpinner(id, max) {
         spin : refreshCharts,
         change : refreshCharts
     };
-    var changeStep = function (event) {
-        if (!event.ctrlKey) {
-            return;
-        }
-
-        var stepPos = $(this).logisticspinner("option", "stepPos");
-
-        var delta = 0;
-        if ((event.which === 1) && (stepPos > 0)) {
-            // Left Button
-            delta = -1;
-        } else if ((event.which === 3) && (stepPos < (steps.length - 1))) {
-            // Right Button
-            delta = +1;
-        }
-
-        if (!!delta) {
-            stepPos += delta;
-            $(this)
-            .logisticspinner("option", "step", steps[stepPos])
-            .logisticspinner("option", "stepPos", stepPos);
-        }
-    };
 
     return $("#" + id)
     .logisticspinner(spinnerOptions)
-    .mousedown(changeStep)
+    .mousedown(handleMouse)
+    .keydown(handleKey)
     .bind("contextmenu", function () {
         return false;
     })
@@ -256,23 +276,23 @@ function plotFlotchart(data) {
                 position : "nw"
             }
         });
-/*
+    /*
     iteractionsChart = $.plot("#iteractionsChart", data.iteractions.data, {
-            color : "green",
-            xaxis : {
-                min : 0,
-                max : data.iteractions.data.length,
-            },
-            yaxis : {
-                min : 0.0,
-                max : 1.0,
-            },
-            points : {
-                show : true,
-                lineWidth : 1,
-            }
-        });
-*/
+    color : "green",
+    xaxis : {
+    min : 0,
+    max : data.iteractions.data.length,
+    },
+    yaxis : {
+    min : 0.0,
+    max : 1.0,
+    },
+    points : {
+    show : true,
+    lineWidth : 1,
+    }
+    });
+     */
 }
 
 $(document).ready(function () {
