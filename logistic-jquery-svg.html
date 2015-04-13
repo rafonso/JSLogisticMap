@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+    
+    <head>
+        <meta charset="utf-8">
+        <title>JS Logistic Map</title>
+        <link rel="stylesheet" type="text/css" href="css/style.css">
+        <link rel="stylesheet" type="text/css" href="css/jquery-ui.min.css">
+        <link rel="stylesheet" type="text/css" href="css/jquery-ui.structure.min.css">
+        <link rel="stylesheet" type="text/css" href="css/jquery-ui.theme.min.css">
+        <script type="text/javascript" src="./js/globalize.js"></script>
+        <script type="text/javascript" src="./js/jquery-1.11.2.min.js"></script>
+        <script type="text/javascript" src="./js/jquery-ui.js"></script>
+        <script type="text/javascript" src="./js/jquery.mousewheel.min.js"></script>
+        <script type="text/javascript" src="./js/jquery.number.min.js"></script>
+        <script type="text/javascript" src="./js/jquery.svg/jquery.svg.js"></script>
+        <script type="text/javascript" src="./js/jquery.svg/jquery.svgplot.js"></script>
+        <script type="text/javascript" src="./js/logistic-jquery-svg.js"></script>
+    </head>
+    
+    <body>
+        <div id="main">
+            <h1>JS Logistic Map</h1>
+            <div id="plots">
+                <div id="logisticChart" class="coweb_chart"></div>
+                <!--
+                    <div id="iteractionsChart" class="coweb_chart"></div>
+                -->
+            </div>
+            <div id="controls">
+                <div id="rowR" class="row_controls">
+                    <label for="rValue">R = </label>
+                    <input id="rValue" name="rValue" value="1.00" class="spinner" title="Changes R value">
+                </div>
+                <div id="rowX0" class="row_controls">
+                    <label for="x0Value">x<sub>0</sub> = </label>
+                    <input id="x0Value" name="x0Value" value="0.50" class="spinner">
+                </div>
+                <div id="rowIteractions" class="row_controls">
+                    <label for="iteractionsValue">Iter = </label>
+                    <input id="iteractionsValue" name="iteractionsValue" value="100" class="spinner">
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
