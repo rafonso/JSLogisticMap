@@ -35,7 +35,7 @@ $.extend($.svg._extensions[0][1].prototype, {
         var xScale = (range[1] - range[0]) / fn._points;
          */
         var first = true;
-        for(var i = 0; i < points.length; i ++){
+        for (var i = 0; i < points.length; i++) {
             var px = (points[i][0] - this.xAxis._scale.min) * scales[0] + dims[this.X];
             var py = dims[this.H] - ((points[i][1] - this.yAxis._scale.min) * scales[1]) + dims[this.Y];
             path[(first ? 'move' : 'line') + 'To'](px, py);
@@ -56,16 +56,15 @@ $.extend($.svg._extensions[0][1].prototype, {
         first = false;
         }
          */
-        var p = this._wrapper.path(this._plot, path) 
-        /*
-        , $.extend({
-                    class_ : 'fnserie',
-                    fill : 'none',
-                    stroke : "red",
-                    strokeWidth : 1
-                }, settings || {}));
-        */
-        this._showStatus(p, "fnserie");
+        var p = this._wrapper.path(this._plot, path)
+            /*, $.extend({
+            class_ : 'fnserie',
+            fill : 'none',
+            stroke : "red",
+            strokeWidth : 1
+            }, settings || {}));
+             */
+            this._showStatus(p, "fnserie");
     }
 });
 
@@ -142,30 +141,39 @@ function generateData() {
         data.logistic.push([x, y]);
         x = y;
     }
-        data.logistic.splice(1, 1); // workaround
+    data.logistic.splice(1, 1); // workaround
 
 
     return data;
 }
 
+function drawIteractions() {
+    $("path.iteractions").remove();
+    var data = generateData();
+
+    var svg = $('#logisticChart').svg('get');
+    var plot = svg.plot;
+    var path = svg.createPath();
+    path.moveTo(plot.xToChart(data.logistic[0][0]), plot.yToChart(data.logistic[0][1]));
+    for (var i = 1; i < data.logistic.length; i++) {
+        path.line(plot.xToChart(data.logistic[i][0]), plot.yToChart(data.logistic[i][1]));
+    }
+    svg.path($("g.foreground").svg("get"), path, {
+        fill : 'none',
+        stroke : 'red',
+        strokeWidth : 1,
+        class : "iteractions"
+    });
+
+    $("g.background rect").appendTo("g.background");
+    plot.redraw();
+    $('path.iteractions').appendTo("g.foreground");
+}
+
 function refreshCharts(event, ui) {
     if (!!ui.value) {
         values[spinnerToValueName(event.target.id)] = ui.value;
-        var data = generateData();
-        console.debug(data);
-        var svg = $('#logisticChart').svg('get');
-        var plot = svg.plot;
-        var path = svg.createPath(); 
-        
-        path.moveTo(data.logistic[0]);
-        for(var i = 1; i < data.logistic.length; i ++) {
-            path.line(plot.xToChart(data.logistic[i][0]), plot.xToChart(data.logistic[i][1]));
-        }
-        path.close();
-        svg.path(plot, path, {fill: 'none', stroke: 'red', strokeWidth: 1});
-        
-//        plot.addSeries(data.logistic);
-        plot.redraw();
+        drawIteractions();
         adjustChart();
     }
 }
@@ -256,30 +264,9 @@ function init() {
         .yAxis.scale(0.0, 1.0).ticks(0.1, 0, 0).title("").end()
         .addFunction("linear", linear, [0, 1], 1, "GoldenRod", 2)
         .addFunction("parabol", parabol, [0, 1], 50, "LightBlue", 2)
-        /*
-        .onStatus(function () {
-        try {
-        if (!!arguments) {
-        console.debug(arguments);
-        }
-        } catch (e) {
-        console.error(e);
-        }
-        })
-         */
         .redraw();
-        /*
-        svg.plot.xToChart = function (x) {
-        return (x - this.xAxis._scale.min) * this._getScales()[0] + this._getDims()[this.X];
-        };
-        svg.plot.yToChart= function (y) {
-        return this._getDims()[this.H] - ((y - this.yAxis._scale.min) * this._getScales()[1]) + this._getDims()[this.Y];
-        };
-         */
-        /*
-        var px = (x - this.xAxis._scale.min) * scales[0] + dims[this.X];
-        var py = dims[this.H] - ((fn._fn(x) - this.yAxis._scale.min) * scales[1]) + dims[this.Y];
-         */
+
+        drawIteractions();
         adjustChart();
     }
 
