@@ -30,7 +30,12 @@ $.extend($.svg._extensions[0][1].prototype, {
 });
 
 function redraw() {
-
+/*
+    function getHeatTrailColor(i, length) {
+        var green = Math.round(((length - i) * 255) / length);
+        return "rgba(255, " + green + ", 0, 0.9)"
+    }
+*/
     function drawLogistic() {
 
         /*
@@ -96,14 +101,12 @@ function redraw() {
     function drawIteractions() {
 
         function drawSeries(heatColor, stage) {
-            var startStage = stage * stageSize;
-            var endStage = startStage + stageSize;
+            var startStage = stage * stageSize
+                var endStage = startStage + stageSize;
             var path = svg.createPath();
-            console.debug(startStage, endStage);
-            
-            
+
             path.moveTo(plot.xToChart(startStage + 1), plot.yToChart(data.iteractions[startStage]));
-            for (var i = startStage + 1; i < endStage; i++) {
+            for (var i = startStage + 1; i <= Math.min(endStage, data.iteractions.length - 1); i++) {
                 path.line(plot.xToChart(i + 1), plot.yToChart(data.iteractions[i]));
             }
             svg.path(svgForeground, path, {
@@ -113,6 +116,7 @@ function redraw() {
                 strokeWidth : 1,
                 class : "iteractions"
             });
+            return i;
         }
 
         // Cleaning
