@@ -2,15 +2,6 @@
 
 var values = {};
 
-var steps = [0.1, 0.01, 0.001, 0.0001, 0.00001];
-
-var heatTrail = [
-    "rgba(255, 200, 0, 1.00)",
-    "rgba(255, 150, 0, 0.90)",
-    "rgba(255, 100, 0, 0.90)",
-    "rgba(255, 050, 0, 0.90)",
-    "rgba(255, 000, 0, 0.90)"];
-
 $.widget("ui.logisticspinner", $.ui.spinner, {
     _format : function (value) {
         return (value === "") ? "" : $.number(value, this._precision());
@@ -30,111 +21,38 @@ $.extend($.svg._extensions[0][1].prototype, {
 });
 
 function redraw() {
-/*
-    function getHeatTrailColor(i, length) {
-        var green = Math.round(((length - i) * 255) / length);
-        return "rgba(255, " + green + ", 0, 0.9)"
-    }
-*/
-    function drawLogistic() {
 
-        /*
-         * Draw quadratic equation using quadratic Bézier curve.
-         * The parabol extremities are the points (0,0) and (1, 0).
-         *
-         */
-        function drawQuadratic() {
-            var y0 = plot.yToChart(0);
-            var x0 = plot.xToChart(0);
-            var x1 = plot.xToChart(1);
-            var x_5 = plot.xToChart(0.5);
-            var y_5 = plot.yToChart(values.r / 2);
+    var heatTrail = [
+        "rgba(000, 255, 0, 0.30)",
+        "rgba( 55, 200, 0, 0.45)",
+        "rgba(128, 128, 0, 0.60)",
+        "rgba(200,  55, 0, 0.75)",
+        "rgba(255, 000, 0, 0.90)"];
 
-            var quadraticPath = svgLogistic.createPath();
-            quadraticPath
-            .move(x0, y0)
-            .curveQ(x_5, y_5, x1, y0);
-            svgLogistic.path(svgLogisticForeground,
-                quadraticPath, {
-                fill : 'none',
-                stroke : "Blue",
-                strokeWidth : 2,
-                class : "quadratic"
-            });
-        }
+    function drawSerie(serie, getX, getY, canTraceStage, serieName, svg, svgForeground) {
 
-        function drawLogistic(heatColor, stage) {
+        function drawStage(heatColor, stage) {
             var startStage = stage * stageSize;
             var endStage = startStage + stageSize;
-            var path = svgLogistic.createPath();
-            path.moveTo(plot.xToChart(data.logistic[startStage].x), plot.yToChart(data.logistic[startStage].y));
-            for (var i = startStage + 1; i < endStage; i++) {
-                var point = data.logistic[i];
-                path.line(plot.xToChart(point.x), plot.yToChart(point.y));
-            }
-            svgLogistic.path(svgLogisticForeground, path, {
-                id : ("logistic" + stage),
-                fill : 'none',
-                stroke : heatColor,
-                strokeWidth : 1,
-                class : "logistic"
-            });
-        }
-
-        // Cleaning
-        $("#logisticChart path.logistic, #logisticChart path.quadratic").remove();
-
-        var svgLogistic = $('#logisticChart').svg('get');
-        var svgLogisticForeground = $("#logisticChart g.foreground").svg("get");
-        var plot = svgLogistic.plot;
-
-        drawQuadratic();
-
-        var stageSize = parseInt(data.logistic.length / heatTrail.length);
-        heatTrail.forEach(drawLogistic);
-
-        plot.redraw();
-        $("#logisticChart g.background rect").appendTo("#logisticChart g.background");
-        $('#logisticChart path.quadratic, #logisticChart path.logistic').appendTo("#logisticChart g.foreground");
-    }
-
-    function drawIteractions() {
-
-        function drawSeries(heatColor, stage) {
-            var startStage = stage * stageSize
-                var endStage = startStage + stageSize;
             var path = svg.createPath();
 
-            path.moveTo(plot.xToChart(startStage + 1), plot.yToChart(data.iteractions[startStage]));
-            for (var i = startStage + 1; i <= Math.min(endStage, data.iteractions.length - 1); i++) {
-                path.line(plot.xToChart(i + 1), plot.yToChart(data.iteractions[i]));
+            path.moveTo(plot.xToChart(getX(startStage)), plot.yToChart(getY(startStage)));
+            for (var i = startStage + 1; canTraceStage(i, endStage); i++) {
+                path.line(plot.xToChart(getX(i)), plot.yToChart(getY(i)));
             }
+
             svg.path(svgForeground, path, {
-                id : ("iteractions" + stage),
+                id : (serieName + stage),
                 fill : 'none',
                 stroke : heatColor,
                 strokeWidth : 1,
-                class : "iteractions"
+                class : serieName
             });
-            return i;
         }
 
-        // Cleaning
-        $("#iteractionsChart path.iteractons").remove();
-
-        var svg = $('#iteractionsChart').svg('get');
-        var svgForeground = $("#iteractionsChart g.foreground").svg("get");
         var plot = svg.plot;
-
-        var ticksDistance = values.iteractions / 10;
-        plot.xAxis.scale(0, values.iteractions).ticks(ticksDistance, 0, 0).title("");
-
-        var stageSize = parseInt(data.iteractions.length / heatTrail.length);
-        heatTrail.forEach(drawSeries);
-
-        plot.redraw();
-        $("#iteractionsChart g.background rect").appendTo("#iteractionsChart g.background");
-        $('#iteractionsChart path.iteractions').appendTo("#iteractionsChart g.foreground");
+        var stageSize = parseInt(serie.length / heatTrail.length);
+        heatTrail.forEach(drawStage);
     }
 
     function adjustChart(chartId, posXLabels, fontSize, adjustLabels) {
@@ -152,15 +70,92 @@ function redraw() {
             .each(adjustLabels);
         }
 
-        var xAxis = formatAxis("xAxisLabels", "y", posXLabels, "x", "23");
+        formatAxis("xAxisLabels", "y", posXLabels, "x", "23");
         formatAxis("yAxisLabels", "x", "20", "y", "381").each(function () {
             $(this).attr("y", parseInt($(this).attr("y")) + 5);
         });
         $(chartId + "g.background rect").appendTo(chartId + "g.background");
+        $(chartId + 'path').appendTo(chartId + "g.foreground");
         $(chartId + "g.xAxis, " + chartId + "g.yAxis").remove();
     }
 
+    function drawLogistic() {
+
+        /*
+         * Draw quadratic equation using quadratic Bézier curve.
+         * The parabol extremities are the points (0,0) and (1, 0).
+         *
+         */
+        function drawQuadratic() {
+            var plot = svg.plot;
+            var y0 = plot.yToChart(0);
+            var x0 = plot.xToChart(0);
+            var x1 = plot.xToChart(1);
+            var x_5 = plot.xToChart(0.5);
+            var y_5 = plot.yToChart(values.r / 2);
+
+            var quadraticPath = svg.createPath();
+            quadraticPath
+            .move(x0, y0)
+            .curveQ(x_5, y_5, x1, y0);
+            svg.path(svgForeground,
+                quadraticPath, {
+                fill : 'none',
+                stroke : "Blue",
+                strokeWidth : 2,
+                class : "quadratic"
+            });
+        }
+
+        // Cleaning
+        $("#logisticChart path").remove();
+        var svg = $('#logisticChart').svg('get');
+        var svgForeground = $("#logisticChart g.foreground").svg("get");
+
+        drawQuadratic();
+
+        drawSerie(data.logistic, function (i) {
+            return data.logistic[i].x;
+        }, function (i) {
+            return data.logistic[i].y;
+        }, function (i, endStage) {
+            return i < endStage;
+        }, "logistic", svg, svgForeground)
+
+        svg.plot.redraw();
+        adjustChart("logisticChart", 395, 13, function (index, element) {
+            $(element).text($.number((1 + index) / 10, 1));
+        });
+    }
+
+    function drawIteractions() {
+        // Cleaning
+        $("#iteractionsChart path").remove();
+        var svg = $('#iteractionsChart').svg('get');
+        var svgForeground = $("#iteractionsChart g.foreground").svg("get");
+
+        var ticksDistance = values.iteractions / 10;
+        svg.plot.xAxis.scale(0, values.iteractions).ticks(ticksDistance, 0, 0).title("");
+
+        drawSerie(data.iteractions, function (i) {
+            return i + 1;
+        }, function (i) {
+            return data.iteractions[i];
+        }, function (i, endStage) {
+            return i <= Math.min(endStage, data.iteractions.length - 1);
+        }, "iteractions", svg, svgForeground)
+
+        svg.plot.redraw();
+        adjustChart("iteractionsChart", 99, 10, function (index, element) {
+            var el = $(element);
+            if (el.parent().attr("class") === "yAxisLabels") {
+                el.text($.number(el.text(), 2));
+            }
+        });
+    }
+
     function generateData() {
+
         var data = {
             logistic : [],
             iteractions : []
@@ -193,22 +188,12 @@ function redraw() {
         }
         data.logistic.splice(1, 1); // workaround
 
-
         return data;
     }
 
     var data = generateData();
     drawLogistic();
     drawIteractions();
-    adjustChart("logisticChart", 395, 13, function (index, element) {
-        $(element).text($.number((1 + index) / 10, 1));
-    });
-    adjustChart("iteractionsChart", 99, 10, function (index, element) {
-        var el = $(element);
-        if (el.parent().attr("class") === "yAxisLabels") {
-            el.text($.number(el.text(), 2));
-        }
-    });
 }
 
 function refreshCharts(event, ui) {
@@ -225,6 +210,8 @@ function refreshCharts(event, ui) {
 }
 
 function init() {
+
+    var steps = [0.1, 0.01, 0.001, 0.0001, 0.00001];
 
     function centralize() {
         $("#main").position({
