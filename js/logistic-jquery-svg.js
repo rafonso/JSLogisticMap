@@ -23,10 +23,10 @@ $.extend($.svg._extensions[0][1].prototype, {
 function redraw() {
 
     var heatTrail = [
-        "rgba(000, 255, 0, 0.30)",
-        "rgba( 55, 200, 0, 0.45)",
-        "rgba(128, 128, 0, 0.60)",
-        "rgba(200,  55, 0, 0.75)",
+        "rgba(000, 255, 0, 0.50)",
+        "rgba( 55, 200, 0, 0.60)",
+        "rgba(128, 128, 0, 0.70)",
+        "rgba(200,  55, 0, 0.80)",
         "rgba(255, 000, 0, 0.90)"];
 
     function drawSerie(serie, getX, getY, canTraceStage, serieName, svg, svgForeground) {
@@ -55,6 +55,9 @@ function redraw() {
         heatTrail.forEach(drawStage);
     }
 
+    /**
+     * Make adjusts on charts which can not be done using the JQuary.SVG.plot API.
+     */
     function adjustChart(chartId, posXLabels, fontSize, adjustLabels) {
         var chartId = "#" + chartId + " ";
 
@@ -65,13 +68,11 @@ function redraw() {
             return axis.children("text")
             .attr(axisType, pos)
             .css("font-size", fontSize + "px")
-            .css("font-family", 'Tahoma, Geneva, sans-serif')
-            .attr("z-index", "10")
             .each(adjustLabels);
         }
 
         formatAxis("xAxisLabels", "y", posXLabels, "x", "23");
-        formatAxis("yAxisLabels", "x", "20", "y", "381").each(function () {
+        formatAxis("yAxisLabels", "x", 20, "y", "381").each(function () {
             $(this).attr("y", parseInt($(this).attr("y")) + 5);
         });
         $(chartId + "g.background rect").appendTo(chartId + "g.background");
@@ -197,16 +198,10 @@ function redraw() {
 }
 
 function refreshCharts(event, ui) {
-    if (!ui.value) {
-        return;
+    if ($.isNumeric(ui.value)) {
+        values[$("#" + event.target.id).data("valueName")] = ui.value;
+        redraw();
     }
-
-    var id = event.target.id;
-    var key = (id === "iteractionsValue") ? "spinner" : "logisticspinner";
-    var valueName = $("#" + id)[key]("option").valueName;
-    values[valueName] = ui.value;
-
-    redraw();
 }
 
 function init() {
@@ -270,7 +265,6 @@ function init() {
             numberFormat : "n",
             spin : refreshCharts,
             change : refreshCharts,
-            valueName : valueName
         };
 
         return $("#" + id)
@@ -279,45 +273,40 @@ function init() {
         .keydown(handleKey)
         .bind("contextmenu", function () {
             return false;
-        })
+        }).data("valueName", valueName);
         //        .tooltip()
     ;
     }
 
-    function initIteractionsValue() {
+    function initIteractionsSpinner() {
         $("#iteractionsValue").spinner({
             min : 0,
             max : 2000,
             step : 50,
             spin : refreshCharts,
             change : refreshCharts,
-            valueName : "iteractions"
-        });
+        }).data("valueName", "iteractions");
+    }
+
+    function initChart(svg, left, top, right, bottom, equalXY, yTicks) {
+        return svg.plot
+        .area(left, top, right, bottom)
+        .equalXY(equalXY)
+        .legend.show(false).end()
+        .gridlines('lightgrey', 'lightgrey')
+        .yAxis.scale(0.0, 1.0).ticks(yTicks, 0, 0).title("").end();
     }
 
     function initLogisticChart(svg) {
-        svg.plot
-        .area(0.06, 0.02, 0.98, 1.00)
-        .equalXY(true)
-        .legend.show(false).end()
-        .gridlines('lightgrey', 'lightgrey')
+        initChart(svg, 0.06, 0.02, 0.98, 1.00, true, 0.1)
         .xAxis.scale(0.0, 1.0).ticks(0.1, 0, 0).title("").end()
-        .yAxis.scale(0.0, 1.0).ticks(0.1, 0, 0).title("").end()
         .addFunction("linear", function (x) {
             return x;
-        }, [0, 1], 1, "GoldenRod", 2)
-        .redraw();
+        }, [0, 1], 1, "GoldenRod", 2);
     }
 
     function initIteractonsChart(svg) {
-        var ticksDistance = values.iteractions / 10;
-        svg.plot
-        .area(0.06, 0.05, 0.98, 0.90)
-        .equalXY(false)
-        .legend.show(false).end()
-        .gridlines('lightgrey', 'lightgrey')
-        .yAxis.scale(0.0, 1.0).ticks(0.25, 0, 0).title("").end()
-        .redraw();
+        initChart(svg, 0.06, 0.05, 0.98, 0.90, false, 0.25);
     }
 
     $(window).resize(centralize);
@@ -325,7 +314,7 @@ function init() {
     centralize();
     initFloatSpinner("rValue", "r", 4.00).focus();
     initFloatSpinner("x0Value", "x0", 1.00);
-    initIteractionsValue();
+    initIteractionsSpinner();
     values = {
         r : $("#rValue").logisticspinner("value"),
         x0 : $("#x0Value").logisticspinner("value"),
