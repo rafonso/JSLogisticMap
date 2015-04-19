@@ -135,8 +135,11 @@ function redraw() {
         var svg = $('#iteractionsChart').svg('get');
         var svgForeground = $("#iteractionsChart g.foreground").svg("get");
 
-        var ticksDistance = values.iteractions / 10;
-        svg.plot.xAxis.scale(0, values.iteractions).ticks(ticksDistance, 0, 0).title("");
+        var ticksDistance = values.iteractions? (values.iteractions / 10): 1;
+        svg.plot.xAxis
+        .scale(0, values.iteractions ? values.iteractions : 1)
+        .ticks(ticksDistance, 0, 0)
+        .title("");
 
         drawSerie(data.iteractions, function (i) {
             return i + 1;
