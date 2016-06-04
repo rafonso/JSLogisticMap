@@ -22,7 +22,7 @@ $.extend($.svg._extensions[0][1].prototype, {
 
 function redraw() {
 	
-	let colorsByStage = new Map([
+	const colorsByStage = new Map([
 		[0, { // From Indigo [rgb( 75,   0, 130)] to Blue [rgb(  0,   0, 255)]
 			r: (i, interval) => (75 * (- (i / interval) + 1)),
 			g: (i, interval) => 0,
@@ -31,8 +31,8 @@ function redraw() {
 		,
 		[1, { // From Blue [rgb(  0,   0, 255)] to Green [rgb(  0, 255,   0)]
 			r: (i, interval) => 0,
-			g: (i, interval) => (255 * ((i / interval) - 1)),
-			b: (i, interval) => 255
+			g: (i, interval) => (255 * (+ (i / interval) - 1)),
+			b: (i, interval) => (255 * (- (i / interval) + 2))
 		}],
 		[2, { // From Green [rgb(  0, 255,   0)] to Yellow [rgb(255, 255,   0)]
 			r: (i, interval) => (255 * ((i / interval) - 2)),
@@ -52,29 +52,28 @@ function redraw() {
 		[5, { // Red [rgb(255,   0,   0)]
 			r: (i, interval) => 255,
 			g: (i, interval) => 0,
-			b: (i, interval) => 0,
-			a: 0.95
+			b: (i, interval) => 0
 		}]
 	]);
 	
 	function drawSerie(serie, getX, getY, alpha, serieName, svg, svgForeground) {
 		
 		function calculateColor(i) {
-			let stage = Math.floor(i / stageSize);
-			let color = colorsByStage.get(stage);
+			const stage = Math.floor(i / stageSize);
+			const color = colorsByStage.get(stage);
 			
-			let r = Math.floor(color.r(i, stageSize));
-			let g = Math.floor(color.g(i, stageSize));
-			let b = Math.floor(color.b(i, stageSize));
-			let a = alpha(i);
+			const r = Math.floor(color.r(i, stageSize));
+			const g = Math.floor(color.g(i, stageSize));
+			const b = Math.floor(color.b(i, stageSize));
+			const a = alpha(i);
 			
 			return `rgba(${r}, ${g}, ${b}, ${a})`;
 		}
 		
 		function plot(i) {
-			let path = svg.createPath();
-			let plot = svg.plot;
-			let color = calculateColor(i);
+			const path = svg.createPath();
+			const plot = svg.plot;
+			const color = calculateColor(i);
 			
 			path.moveTo(plot.xToChart(getX(i-1)), plot.yToChart(getY(i-1)));
             path.line(plot.xToChart(getX(i)), plot.yToChart(getY(i)));
@@ -98,11 +97,10 @@ function redraw() {
 		* Make adjusts on charts which can not be done using the JQuary.SVG.plot API.
 	*/
     function adjustChart(chartId, posXLabels, fontSize, adjustLabels) {
-        var chartId = "#" + chartId + " ";
 		
         function formatAxis(idAxis, axisType, pos, axis0Type, _0Type) {
-            var axis = $(chartId + "g." + idAxis);
-            axis.appendTo(chartId + "g.background");
+            const axis = $(`#${chartId} g.${idAxis}`);
+            axis.appendTo(`#${chartId} g.background`);
 			
             return axis.children("text")
             .attr(axisType, pos)
@@ -114,9 +112,9 @@ function redraw() {
         formatAxis("yAxisLabels", "x", 20, "y", "381").each(function () {
             $(this).attr("y", parseInt($(this).attr("y")) + 5);
 		});
-        $(chartId + "g.background rect").appendTo(chartId + "g.background");
-        $(chartId + 'path').appendTo(chartId + "g.foreground");
-        $(chartId + "g.xAxis, " + chartId + "g.yAxis").remove();
+        $(`#${chartId} g.background rect`).appendTo(`#${chartId} g.background`);
+        $(`#${chartId} path`).appendTo(`#${chartId} g.foreground`);
+        $(`#${chartId} g.xAxis, #${chartId} g.yAxis`).remove();
 	}
 	
     function drawLogistic() {
@@ -127,14 +125,14 @@ function redraw() {
 			*
 		*/
         function drawQuadratic() {
-            var plot = svg.plot;
-            var y0 = plot.yToChart(0);
-            var x0 = plot.xToChart(0);
-            var x1 = plot.xToChart(1);
-            var x_5 = plot.xToChart(0.5);
-            var y_5 = plot.yToChart(values.r / 2);
+            let plot = svg.plot;
+            let y0 = plot.yToChart(0);
+            let x0 = plot.xToChart(0);
+            let x1 = plot.xToChart(1);
+            let x_5 = plot.xToChart(0.5);
+            let y_5 = plot.yToChart(values.r / 2);
 			
-            var quadraticPath = svg.createPath();
+            let quadraticPath = svg.createPath();
             quadraticPath
             .move(x0, y0)
             .curveQ(x_5, y_5, x1, y0);
@@ -149,8 +147,8 @@ function redraw() {
 		
         // Cleaning
         $("#logisticChart path").remove();
-        var svg = $('#logisticChart').svg('get');
-        var svgForeground = $("#logisticChart g.foreground").svg("get");
+        let svg = $('#logisticChart').svg('get');
+        let svgForeground = $("#logisticChart g.foreground").svg("get");
 		
         drawQuadratic();
 		
@@ -169,10 +167,10 @@ function redraw() {
     function drawIteractions() {
         // Cleaning
         $("#iteractionsChart path").remove();
-        var svg = $('#iteractionsChart').svg('get');
-        var svgForeground = $("#iteractionsChart g.foreground").svg("get");
+        let svg = $('#iteractionsChart').svg('get');
+        let svgForeground = $("#iteractionsChart g.foreground").svg("get");
 		
-        var ticksDistance = values.iteractions? (values.iteractions / 10): 1;
+        let ticksDistance = values.iteractions? (values.iteractions / 10): 1;
         svg.plot.xAxis
         .scale(0, values.iteractions ? values.iteractions : 1)
         .ticks(ticksDistance, 0, 0)
@@ -186,7 +184,7 @@ function redraw() {
 		
         svg.plot.redraw();
         adjustChart("iteractionsChart", 99, 10, function (index, element) {
-            var el = $(element);
+            let el = $(element);
             if (el.parent().attr("class") === "yAxisLabels") {
                 el.text($.number(el.text(), 2));
 			}
@@ -195,25 +193,25 @@ function redraw() {
 	
     function generateData() {
 		
-        var data = {
+        let data = {
             logistic : [],
             iteractions : []
 		};
 		
-        var x = values.x0;
+        let x = values.x0;
         data.iteractions.push(x);
-        for (var it = 1; it < values.iteractions; it++) {
+        for (let it = 1; it < values.iteractions; it++) {
             x = (values.r * x * (1 - x));
             data.iteractions.push(x);
 		}
 		
         x = data.iteractions[0];
-        var y = 0;
+        let y = 0;
         data.logistic.push({
             x : x,
             y : y
 		});
-        for (var it = 1; it < data.iteractions.length; it++) {
+        for (let it = 1; it < data.iteractions.length; it++) {
             y = data.iteractions[it];
             data.logistic.push({
                 x : x,
@@ -237,14 +235,14 @@ function redraw() {
 
 function refreshCharts(event, ui) {
     if ($.isNumeric(ui.value)) {
-        values[$("#" + event.target.id).data("valueName")] = ui.value;
+        values[$(`#${event.target.id}`).data("valueName")] = ui.value;
         redraw();
 	}
 }
 
 function init() {
 	
-    var steps = [0.1, 0.01, 0.001, 0.0001, 0.00001];
+    const steps = [0.1, 0.01, 0.001, 0.0001, 0.00001];
 	
     function centralize() {
         $("#main").position({
@@ -255,8 +253,8 @@ function init() {
     function initFloatSpinner(id, valueName, max) {
 		
         function changeStep(id, decreaseStep) {
-            var stepPos = $("#" + id).logisticspinner("option", "stepPos");
-            var delta = 0;
+            let stepPos = $("#" + id).logisticspinner("option", "stepPos");
+            let delta = 0;
             if (!decreaseStep && (stepPos > 0)) {
                 delta = -1;
 				} else if (decreaseStep && (stepPos < (steps.length - 1))) {
@@ -295,7 +293,7 @@ function init() {
 			}
 		}
 		
-        var spinnerOptions = {
+        const spinnerOptions = {
             min : 0.00,
             max : max,
             stepPos : 1,
@@ -309,11 +307,8 @@ function init() {
         .logisticspinner(spinnerOptions)
         .mousedown(handleMouse)
         .keydown(handleKey)
-        .bind("contextmenu", function () {
-            return false;
-		}).data("valueName", valueName);
-        //        .tooltip()
-		;
+        .bind("contextmenu", () => false)
+		.data("valueName", valueName);
 	}
 	
     function initIteractionsSpinner() {
@@ -338,9 +333,7 @@ function init() {
     function initLogisticChart(svg) {
         initChart(svg, 0.06, 0.02, 0.98, 1.00, true, 0.1)
         .xAxis.scale(0.0, 1.0).ticks(0.1, 0, 0).title("").end()
-        .addFunction("linear", function (x) {
-            return x;
-		}, [0, 1], 1, "GoldenRod", 2);
+        .addFunction("linear", (x) =>  x, [0, 1], 1, "GoldenRod", 2);
 	}
 	
     function initIteractonsChart(svg) {
