@@ -150,7 +150,7 @@ function redraw() {
                 class : "quadratic"
 			});
 		}
-	
+		
 		function writeLegends() {
 			$("#legends").remove();
 			let g = svg.group("legends");
@@ -159,7 +159,7 @@ function redraw() {
 			svg.text(g, 30, 44, `x0 = ${values.x0}`);
 			$("#logisticChart .foreground").prepend($("#legends"));
 		}
-	
+		
 		let {svg, svgForeground} = prepareChart("logistic");
 		
         drawQuadratic();
@@ -232,22 +232,22 @@ function redraw() {
         return data;
 	}
 	
-	console.time(`redraw ${values.iteractions}`);
+	// console.time(`redraw ${values.iteractions}`);
 	
-	console.time(`\tgenerateData ${values.iteractions}`);
+	// console.time(`\tgenerateData ${values.iteractions}`);
     var data = generateData();
-	console.timeEnd(`\tgenerateData ${values.iteractions}`);
+	// console.timeEnd(`\tgenerateData ${values.iteractions}`);
 	
-	console.time(`\tdrawLogistic ${values.iteractions}`);
+	// console.time(`\tdrawLogistic ${values.iteractions}`);
     drawLogistic();
-	console.timeEnd(`\tdrawLogistic ${values.iteractions}`);
+	// console.timeEnd(`\tdrawLogistic ${values.iteractions}`);
 	
-	console.time(`\tdrawIteractions ${values.iteractions}`);
+	// console.time(`\tdrawIteractions ${values.iteractions}`);
     drawIteractions();
-	console.timeEnd(`\tdrawIteractions ${values.iteractions}`);
+	// console.timeEnd(`\tdrawIteractions ${values.iteractions}`);
 	
-	console.timeEnd(`redraw ${values.iteractions}`);
-	console.log("");
+	// console.timeEnd(`redraw ${values.iteractions}`);
+	// console.log("");
 }
 
 function refreshCharts(event, ui) {
@@ -261,30 +261,68 @@ function init() {
 	
     const steps = [0.1, 0.01, 0.001, 0.0001, 0.00001];
 	
+	const actionsByKey = new Map([
+		['E', (hasShift) => {
+			if(hasShift) {
+				changeStep("rValue", false);
+			} else {
+				$('#rValue').logisticspinner( "stepDown" );
+			}
+		}],
+		['T', (hasShift) => {
+			if(hasShift) {
+				changeStep("rValue", true);
+			} else {
+				$('#rValue').logisticspinner( "stepUp" );
+			}
+		}],
+		['U', (hasShift) => {
+			$('#iteractionsValue').spinner( "stepDown" );
+		}],
+		['O', (hasShift) => {
+			$('#iteractionsValue').spinner( "stepUp" );
+		}],
+		['Z', (hasShift) => {
+			if(hasShift) {
+				changeStep("x0Value", false);
+			} else {
+				$('#x0Value').logisticspinner( "stepDown" );
+			}
+		}],
+		['C', (hasShift) => {
+			if(hasShift) {
+				changeStep("x0Value", true);
+			} else {
+				$('#x0Value').logisticspinner( "stepUp" );
+			}
+		}]
+	]);
+	
+	
     function centralize() {
         $("#main").position({
             of : "body"
 		});
 	}
 	
-    function initFloatSpinner(id, valueName, max) {
-		
-        function changeStep(id, decreaseStep) {
-            let stepPos = $("#" + id).logisticspinner("option", "stepPos");
-            let delta = 0;
-            if (!decreaseStep && (stepPos > 0)) {
-                delta = -1;
-			} else if (decreaseStep && (stepPos < (steps.length - 1))) {
-                delta = +1;
-			}
-			
-            if (!!delta) {
-                stepPos += delta;
-                $("#" + id)
-                .logisticspinner("option", "step", steps[stepPos])
-                .logisticspinner("option", "stepPos", stepPos);
-			}
+	function changeStep(id, decreaseStep) {
+		let stepPos = $("#" + id).logisticspinner("option", "stepPos");
+		let delta = 0;
+		if (!decreaseStep && (stepPos > 0)) {
+			delta = -1;
+		} else if (decreaseStep && (stepPos < (steps.length - 1))) {
+			delta = +1;
 		}
+		
+		if (!!delta) {
+			stepPos += delta;
+			$("#" + id)
+			.logisticspinner("option", "step", steps[stepPos])
+			.logisticspinner("option", "stepPos", stepPos);
+		}
+	}
+	
+    function initFloatSpinner(id, valueName, max) {
 		
 		function handleStep(event, incrementEvent, decrementEvent) {
             if (!event.ctrlKey) {
@@ -353,7 +391,14 @@ function init() {
         initChart(svg, 0.06, 0.05, 0.98, 0.90, false, 0.25);
 	}
 	
-    $(window).resize(centralize);
+	
+	
+    $(window).resize(centralize).keypress(function(event) {
+		let key = event.key.toUpperCase();
+		if(actionsByKey.has(key)) {
+			actionsByKey.get(key)(event.shiftKey);
+		}
+	});
 	
     centralize();
     initFloatSpinner("rValue", "r", 4.00).focus();
