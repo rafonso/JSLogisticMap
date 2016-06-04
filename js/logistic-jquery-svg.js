@@ -22,37 +22,37 @@ $.extend($.svg._extensions[0][1].prototype, {
 
 function redraw() {
 	
-	const colorsByStage = new Map([
+	const heatTrace = new Map([
 		[0, { // From Indigo [rgb( 75,   0, 130)] to Blue [rgb(  0,   0, 255)]
-			r: (i, interval) => (75 * (- (i / interval) + 1)),
-			g: (i, interval) => 0,
-			b: (i, interval) => (125 *  (i / interval) + 130)
+			r: (pos) => (75 * (- pos + 1)),
+			g: (pos) => 0,
+			b: (pos) => (125 * pos + 130)
 		}]
 		,
 		[1, { // From Blue [rgb(  0,   0, 255)] to Green [rgb(  0, 255,   0)]
-			r: (i, interval) => 0,
-			g: (i, interval) => (255 * (+ (i / interval) - 1)),
-			b: (i, interval) => (255 * (- (i / interval) + 2))
+			r: (pos) => 0,
+			g: (pos) => (255 * (+ pos - 1)),
+			b: (pos) => (255 * (- pos + 2))
 		}],
 		[2, { // From Green [rgb(  0, 255,   0)] to Yellow [rgb(255, 255,   0)]
-			r: (i, interval) => (255 * ((i / interval) - 2)),
-			g: (i, interval) => 255,
-			b: (i, interval) => 0
+			r: (pos) => (255 * (pos - 2)),
+			g: (pos) => 255,
+			b: (pos) => 0
 		}],
 		[3, { // From Yellow [rgb(255, 255,   0)] to Orange [rgb(222, 127,   0)] 
-			r: (i, interval) => (- 33 * (i / interval) + 354),
-			g: (i, interval) => 255 * (- (i / interval) + 5) / 2,
-			b: (i, interval) => 0
+			r: (pos) => (- 33 * pos + 354),
+			g: (pos) => 255 * (- pos + 5) / 2,
+			b: (pos) => 0
 		}],
 		[4, { // From Orange [rgb(222, 127,   0)] to Red [rgb(255,   0,   0)]
-			r: (i, interval) => (33 * (i / interval) + 90),
-			g: (i, interval) => 255 * (- (i / interval) + 5) / 2,
-			b: (i, interval) => 0
+			r: (pos) => (33 * pos + 90),
+			g: (pos) => 255 * (- pos + 5) / 2,
+			b: (pos) => 0
 		}],
 		[5, { // Red [rgb(255,   0,   0)]
-			r: (i, interval) => 255,
-			g: (i, interval) => 0,
-			b: (i, interval) => 0
+			r: (pos) => 255,
+			g: (pos) => 0,
+			b: (pos) => 0
 		}]
 	]);
 	
@@ -60,11 +60,12 @@ function redraw() {
 		
 		function calculateColor(i) {
 			const stage = Math.floor(i / stageSize);
-			const color = colorsByStage.get(stage);
+			const color = heatTrace.get(stage);
+			const pos = (i / stageSize);
 			
-			const r = Math.floor(color.r(i, stageSize));
-			const g = Math.floor(color.g(i, stageSize));
-			const b = Math.floor(color.b(i, stageSize));
+			const r = Math.floor(color.r(pos));
+			const g = Math.floor(color.g(pos));
+			const b = Math.floor(color.b(pos));
 			const a = alpha(i);
 			
 			return `rgba(${r}, ${g}, ${b}, ${a})`;
@@ -152,10 +153,11 @@ function redraw() {
 		
         drawQuadratic();
 		
+		const a0 = 0.5;
         drawSerie(data.logistic, 
 		(i) => data.logistic[i].x, 
 		(i) => data.logistic[i].y, 
-		(i) => 0.5 + (1 - 0.5) * i / data.logistic.length,
+		(i) => a0 + (1 - a0) * (i / data.logistic.length),
 		"logistic", svg, svgForeground)
 		
         svg.plot.redraw();
@@ -228,9 +230,11 @@ function redraw() {
         return data;
 	}
 	
+	console.time("redraw")
     var data = generateData();
     drawLogistic();
     drawIteractions();
+	console.timeEnd("redraw")
 }
 
 function refreshCharts(event, ui) {
