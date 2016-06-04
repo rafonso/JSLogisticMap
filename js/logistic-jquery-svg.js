@@ -89,9 +89,7 @@ function redraw() {
 		
 		var stageSize = parseInt(serie.length / 5);
 		
-		for(let i = 1; i < serie.length; i ++) {
-			plot(i);
-		}
+		_.range(1, serie.length).forEach(plot);
 	}
 	
     /**
@@ -202,39 +200,40 @@ function redraw() {
 		
         let x = values.x0;
         data.iteractions.push(x);
-        for (let it = 1; it < values.iteractions; it++) {
+		_.range(1, values.iteractions).forEach((it) => {
             x = (values.r * x * (1 - x));
             data.iteractions.push(x);
-		}
+		});
 		
         x = data.iteractions[0];
         let y = 0;
-        data.logistic.push({
-            x : x,
-            y : y
-		});
-        for (let it = 1; it < data.iteractions.length; it++) {
+        data.logistic.push({x, y});
+		_.range(1, data.iteractions.length).forEach((it) => {
             y = data.iteractions[it];
-            data.logistic.push({
-                x : x,
-                y : x
-			});
-            data.logistic.push({
-                x : x,
-                y : y
-			});
+            data.logistic.push({x, y : x});
+            data.logistic.push({x, y});
             x = y;
-		}
+		});
         data.logistic.splice(1, 1); // workaround
 		
         return data;
 	}
 	
-	console.time("redraw")
+	console.time(`redraw ${values.iteractions}`);
+	
+	console.time(`	generateData ${values.iteractions}`);
     var data = generateData();
+	console.timeEnd(`	generateData ${values.iteractions}`);
+	
+	console.time(`	drawLogistic ${values.iteractions}`);
     drawLogistic();
+	console.timeEnd(`	drawLogistic ${values.iteractions}`);
+	
+	console.time(`	drawIteractions ${values.iteractions}`);
     drawIteractions();
-	console.timeEnd("redraw")
+	console.timeEnd(`	drawIteractions ${values.iteractions}`);
+	
+	console.timeEnd(`redraw ${values.iteractions}`);
 }
 
 function refreshCharts(event, ui) {
