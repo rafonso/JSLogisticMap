@@ -32,6 +32,11 @@ body {
     width:400px;
 }
 
+#legends {
+	font-size: 11px;
+	font-family: monospace;
+}
+
 #jqPlotChart , #logisticChart{
     height:400px;
 }

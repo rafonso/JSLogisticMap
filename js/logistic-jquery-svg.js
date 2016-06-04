@@ -66,7 +66,7 @@ function redraw() {
 			const r = Math.floor(color.r(pos));
 			const g = Math.floor(color.g(pos));
 			const b = Math.floor(color.b(pos));
-			const a = alpha(i);
+			const a = s.numberFormat(alpha(i), 3); 
 			
 			return `rgba(${r}, ${g}, ${b}, ${a})`;
 		}
@@ -143,6 +143,7 @@ function redraw() {
             .curveQ(x_5, y_5, x1, y0);
             svg.path(svgForeground,
 			quadraticPath, {
+				id: 'parabol',
                 fill : 'none',
                 stroke : "Violet",
                 strokeWidth : 2,
@@ -152,10 +153,11 @@ function redraw() {
 	
 		function writeLegends() {
 			$("#legends").remove();
-			let g = svg.group("legends", {fontSize: 11, fontFamily: 'Verdana'});
-			svg.text(g, 30, 20, `R = ${values.r}`);
-			svg.text(g, 30, 32, `x0 = ${values.x0}`);
-			svg.text(g, 30, 44, `Iteractions = ${values.iteractions}`); 
+			let g = svg.group("legends");
+			svg.text(g, 30, 20, `Iteractions = ${values.iteractions}`); 
+			svg.text(g, 30, 32, `R = ${values.r}`);
+			svg.text(g, 30, 44, `x0 = ${values.x0}`);
+			$("#logisticChart .foreground").prepend($("#legends"));
 		}
 	
 		let {svg, svgForeground} = prepareChart("logistic");
@@ -170,9 +172,9 @@ function redraw() {
 		(i) => a0 + (aMax - a0) * (i / data.logistic.length),
 		"logistic", svg, svgForeground);
 		
-		writeLegends();
-		
         svg.plot.redraw();
+		
+		writeLegends();
         adjustChart("logisticChart", 395, 13, function (index, element) {
             $(element).text($.number((1 + index) / 10, 1));
 		});
