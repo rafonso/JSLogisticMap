@@ -149,7 +149,15 @@ function redraw() {
                 class : "quadratic"
 			});
 		}
-		
+	
+		function writeLegends() {
+			$("#legends").remove();
+			let g = svg.group("legends", {fontSize: 11, fontFamily: 'Verdana'});
+			svg.text(g, 30, 20, `R = ${values.r}`);
+			svg.text(g, 30, 32, `x0 = ${values.x0}`);
+			svg.text(g, 30, 44, `Iteractions = ${values.iteractions}`); 
+		}
+	
 		let {svg, svgForeground} = prepareChart("logistic");
 		
         drawQuadratic();
@@ -160,7 +168,9 @@ function redraw() {
 		(i) => data.logistic[i].x, 
 		(i) => data.logistic[i].y, 
 		(i) => a0 + (aMax - a0) * (i / data.logistic.length),
-		"logistic", svg, svgForeground)
+		"logistic", svg, svgForeground);
+		
+		writeLegends();
 		
         svg.plot.redraw();
         adjustChart("logisticChart", 395, 13, function (index, element) {
