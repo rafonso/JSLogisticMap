@@ -116,6 +116,12 @@ function redraw() {
         $(`#${chartId} g.xAxis, #${chartId} g.yAxis`).remove();
 	}
 	
+	function prepareChart(id) {
+        $(`#${id}Chart path`).remove();
+		
+		return {svg: $(`#${id}Chart`).svg('get'), svgForeground: $(`#${id}Chart g.foreground`).svg("get")};
+	}
+	
     function drawLogistic() {
 		
         /*
@@ -144,18 +150,16 @@ function redraw() {
 			});
 		}
 		
-        // Cleaning
-        $("#logisticChart path").remove();
-        let svg = $('#logisticChart').svg('get');
-        let svgForeground = $("#logisticChart g.foreground").svg("get");
+		let {svg, svgForeground} = prepareChart("logistic");
 		
         drawQuadratic();
 		
 		const a0 = 0.5;
+		const aMax = 0.95;
         drawSerie(data.logistic, 
 		(i) => data.logistic[i].x, 
 		(i) => data.logistic[i].y, 
-		(i) => a0 + (1 - a0) * (i / data.logistic.length),
+		(i) => a0 + (aMax - a0) * (i / data.logistic.length),
 		"logistic", svg, svgForeground)
 		
         svg.plot.redraw();
@@ -165,10 +169,7 @@ function redraw() {
 	}
 	
     function drawIteractions() {
-        // Cleaning
-        $("#iteractionsChart path").remove();
-        let svg = $('#iteractionsChart').svg('get');
-        let svgForeground = $("#iteractionsChart g.foreground").svg("get");
+		let {svg, svgForeground} = prepareChart("iteractions");
 		
         let ticksDistance = values.iteractions? (values.iteractions / 10): 1;
         svg.plot.xAxis
@@ -221,19 +222,20 @@ function redraw() {
 	
 	console.time(`redraw ${values.iteractions}`);
 	
-	console.time(`	generateData ${values.iteractions}`);
+	console.time(`\tgenerateData ${values.iteractions}`);
     var data = generateData();
-	console.timeEnd(`	generateData ${values.iteractions}`);
+	console.timeEnd(`\tgenerateData ${values.iteractions}`);
 	
-	console.time(`	drawLogistic ${values.iteractions}`);
+	console.time(`\tdrawLogistic ${values.iteractions}`);
     drawLogistic();
-	console.timeEnd(`	drawLogistic ${values.iteractions}`);
+	console.timeEnd(`\tdrawLogistic ${values.iteractions}`);
 	
-	console.time(`	drawIteractions ${values.iteractions}`);
+	console.time(`\tdrawIteractions ${values.iteractions}`);
     drawIteractions();
-	console.timeEnd(`	drawIteractions ${values.iteractions}`);
+	console.timeEnd(`\tdrawIteractions ${values.iteractions}`);
 	
 	console.timeEnd(`redraw ${values.iteractions}`);
+	console.log("");
 }
 
 function refreshCharts(event, ui) {
@@ -260,7 +262,7 @@ function init() {
             let delta = 0;
             if (!decreaseStep && (stepPos > 0)) {
                 delta = -1;
-				} else if (decreaseStep && (stepPos < (steps.length - 1))) {
+			} else if (decreaseStep && (stepPos < (steps.length - 1))) {
                 delta = +1;
 			}
 			
@@ -272,29 +274,25 @@ function init() {
 			}
 		}
 		
-        function handleMouse(event) {
+		function handleStep(event, incrementEvent, decrementEvent) {
             if (!event.ctrlKey) {
                 return;
 			}
 			
-            if (event.which === 1) { // Left Button
+            if (incrementEvent(event)) { 
                 changeStep(event.target.id, false);
-				} else if (event.which === 3) { // Right Button
+			} else if (decrementEvent(event)) { 
                 changeStep(event.target.id, true);
 			}
 		}
 		
-        function handleKey(event) {
-            if (!event.ctrlKey) {
-                return;
-			}
-			
-            if (event.keyCode === 37) { // Arrow Left
-                changeStep(event.target.id, false);
-				} else if (event.keyCode === 39) { // Arrow Right
-                changeStep(event.target.id, true);
-			}
-		}
+        let handleMouse = (event) => handleStep(event, 
+		(e) => (e.which === 1), // Left Button
+		(e) => (e.which === 3)); // Right Button
+		
+        let handleKey = (event) =>  handleStep(event, 
+		(e) => (e.keyCode === 37), // Left Arrow
+		(e) => (e.keyCode === 39)); // Right Arrow
 		
         const spinnerOptions = {
             min : 0.00,
