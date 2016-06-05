@@ -257,6 +257,21 @@ function refreshCharts(event, ui) {
 	}
 }
 
+function saveLogisticChart() {
+	let logisticChart = $("#logisticChart");
+	let filename = encodeURIComponent(`r=${values.r},x0=${values.x0},iteractions=${values.iteractions}.png`);
+	let code = `<meta http-equiv="content-type" content="image/svg+xml"/>
+	<meta name="content-disposition" content="inline; filename=${filename}">
+	<link rel="stylesheet" type="text/css" href="css/style.css">
+	${logisticChart.svg('get').toSVG()}`;
+	let uriContent = "data:image/svg+xml"; //," + filename;
+
+	let chartWindow = window.open(filename, filename, `left=0,top=0,menubar=1,titlebar=0,width=${logisticChart.width() + 50},height=${logisticChart.height() +50},toolbar=0,scrollbars=0,status=0`);
+	chartWindow.document.write(code);
+	chartWindow.document.close();
+	chartWindow.focus();
+}
+
 function init() {
 	
     const steps = [0.1, 0.01, 0.001, 0.0001, 0.00001];
@@ -409,7 +424,7 @@ function init() {
         x0 : $("#x0Value").logisticspinner("value"),
         iteractions : $("#iteractionsValue").spinner("value")
 	};
-    $('#logisticChart').svg(initLogisticChart);
+    $('#logisticChart').svg(initLogisticChart).dblclick(saveLogisticChart);
     $('#iteractionsChart').svg(initIteractonsChart);
     redraw();
 }
