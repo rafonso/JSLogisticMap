@@ -22,7 +22,7 @@ class Plotter {
 			initChart(svg, 0.06, 0.05, 0.98, 0.90, false, 0.25);
 		}
 		
-		this.logisticChart = $('#logisticChart').svg(initLogisticChart).dblclick(saveLogisticChart).svg("get");
+		this.logisticChart = $('#logisticChart').svg(initLogisticChart).svg("get"); //.dblclick(saveLogisticChart);
 		this.logisticForeground = $("#logisticChart g.foreground").svg("get")
 		this.iteractionsChart = $('#iteractionsChart').svg(initIteractonsChart).svg("get");
 		this.iteractionsForeground = $("#iteractionsChart g.foreground").svg("get")
@@ -123,6 +123,79 @@ class Plotter {
 		_.range(1, serie.length).forEach(plot);
 	}
 	
+	drawLogistic(generator) {
+		
+		/*
+			* Draw quadratic equation using quadratic Bézier curve.
+			* The parable extremities are the points (0,0) and (1, 0).
+			*
+		*/
+		let drawParable = () => {
+			let plot = this.logisticChart.plot;
+			let y0 = plot.yToChart(0);
+			let x0 = plot.xToChart(0);
+			let x1 = plot.xToChart(1);
+			let x_5 = plot.xToChart(0.5);
+			let y_5 = plot.yToChart(generator.parameters.r / 2);
+			
+			let quadraticPath = this.logisticChart.createPath();
+			quadraticPath
+			.move(x0, y0)
+			.curveQ(x_5, y_5, x1, y0);
+			this.logisticChart.path(this.logisticForeground,
+			quadraticPath, {
+				id: 'parable',
+				fill : 'none',
+				stroke : "Violet",
+				strokeWidth : 2,
+				class : "quadratic"
+			});
+		}
+		
+		let writeLegends = () => {
+			$("#legends").remove();
+			let g = this.logisticChart.group("legends");
+			this.logisticChart.text(g, 30, 20, `Iteractions = ${generator.parameters.iteractions}`); 
+			this.logisticChart.text(g, 30, 32, `R = ${generator.parameters.r}`);
+			this.logisticChart.text(g, 30, 44, `x0 = ${generator.parameters.x0}`);
+			$("#logisticChart .foreground").prepend($("#legends"));
+		}
+	
+		let prepareLogistic = () => {
+			let logistic = [];
+			let x = generator.values[0];
+			let y = 0;
+			logistic.push({x, y});
+			_.range(1, generator.values.length).forEach((it) => {
+				y = generator.values[it];
+				logistic.push({x, y : x});
+				logistic.push({x, y});
+				x = y;
+			});
+			logistic.splice(1, 1); // workaround
+			
+			return logistic;
+		}
+		
+		drawParable();
+		
+		let logistic = prepareLogistic();
+		
+		const a0 = 0.5;
+		const aMax = 0.95;
+		this.drawSerie(logistic, 
+		(i) => logistic[i].x, 
+		(i) => logistic[i].y, 
+		(i) => a0 + (aMax - a0) * (i / logistic.length),
+		"logistic", this.logisticChart, this.logisticForeground);
+		
+		this.logisticChart.plot.redraw();
+		
+		writeLegends();
+		this.adjustChart("logisticChart", 395, 13, function (index, element) {
+			$(element).text($.number((1 + index) / 10, 1));
+		});
+	}
 
 	
 	drawIteractions(generator, lastPosition) {
@@ -150,6 +223,8 @@ class Plotter {
 
 	
 	redraw(generator, lastPosition) {
+		$("#iteractionsChart path, #logisticChart path").remove();
+		this.drawLogistic(generator, lastPosition);
 		this.drawIteractions(generator, lastPosition);
 	}
 	
