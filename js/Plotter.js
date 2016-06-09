@@ -1,7 +1,7 @@
 "use strict";
 
 class Plotter {
-	
+
 	constructor() {
 		function initChart(svg, left, top, right, bottom, equalXY, yTicks) {
 			return svg.plot
@@ -22,7 +22,7 @@ class Plotter {
 			initChart(svg, 0.06, 0.05, 0.98, 0.90, false, 0.25);
 		}
 		
-		this.logisticChart = $('#logisticChart').svg(initLogisticChart).svg("get"); //.dblclick(saveLogisticChart);
+		this.logisticChart = $('#logisticChart').svg(initLogisticChart).svg("get"); //.dblclick(this.saveLogisticChart);
 		this.logisticForeground = $("#logisticChart g.foreground").svg("get")
 		this.iteractionsChart = $('#iteractionsChart').svg(initIteractonsChart).svg("get");
 		this.iteractionsForeground = $("#iteractionsChart g.foreground").svg("get")
@@ -61,7 +61,7 @@ class Plotter {
 			}]
 		]);
 	}
-	
+
 	/**
 	* Make adjusts on charts which can not be done using the JQuary.SVG.plot API.
 	*/
@@ -85,7 +85,6 @@ class Plotter {
 		$(`#${chartId} path`).appendTo(`#${chartId} g.foreground`);
 		$(`#${chartId} g.xAxis, #${chartId} g.yAxis`).remove();
 	}
-	
 
 	drawSerie(serie, getX, getY, alpha, serieName, svg, svgForeground) {
 		
@@ -122,7 +121,7 @@ class Plotter {
 		
 		_.range(1, serie.length).forEach(plot);
 	}
-	
+
 	drawLogistic(generator) {
 		
 		/*
@@ -197,7 +196,6 @@ class Plotter {
 		});
 	}
 
-	
 	drawIteractions(generator, lastPosition) {
 		let ticksDistance = generator.values.length? (generator.values.length / 10): 1;
 		this.iteractionsChart.plot.xAxis
@@ -219,15 +217,28 @@ class Plotter {
 			}
 		});
 	}
-	
 
-	
+	saveLogisticChart() {
+		let logisticChart = $("#logisticChart");
+		let filename = encodeURIComponent(`r=${generator.parameters.r},x0=${generator.parameters.x0},iteractions=${generator.parameters.iteractions}.png`);
+		let code = `<meta http-equiv="content-type" content="image/svg+xml"/>
+		<meta name="content-disposition" content="inline; filename=${filename}">
+		<link rel="stylesheet" type="text/css" href="css/style.css">
+		${logisticChart.svg('get').toSVG()}`;
+		let uriContent = "data:image/svg+xml"; //," + filename;
+		
+		let chartWindow = window.open(filename, filename, `left=0,top=0,menubar=1,titlebar=0,width=${logisticChart.width() + 50},height=${logisticChart.height() +50},toolbar=0,scrollbars=0,status=0`);
+		chartWindow.document.write(code);
+		chartWindow.document.close();
+		chartWindow.focus();
+	}
+
 	redraw(generator, lastPosition) {
 		$("#iteractionsChart path, #logisticChart path").remove();
 		this.drawLogistic(generator, lastPosition);
 		this.drawIteractions(generator, lastPosition);
 	}
-	
+
 	clean() {
 		$("#iteractionsChart path, #logisticChart path").remove();
 	}

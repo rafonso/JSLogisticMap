@@ -27,26 +27,3 @@ class LogisticGenerator {
 	}
 	
 }
-
-
-class Foo {
-	
-	constructor() {
-		this.value = 1;
-		this.status = READY;
-	}
-	
-	bar() {
-		this.status = RUNNING;	
-		console.log("bar", this.status );
-		this.value = this.value + 10;
-		this.status = READY;
-		console.log("bar", this.status );
-	}
-	
-}
-
-let foo = toObservable(new Foo());
-
-foo.addObserver((evt) => console.log(`${evt.target.toString()}.${evt.property}: ${evt.oldValue} -> ${evt.newValue}`));
-
