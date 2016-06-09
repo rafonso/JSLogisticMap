@@ -1,6 +1,8 @@
 "use strict";
 
-var values = {};
+let parameters = {}; //toObservable(new LogisticParameters());
+
+let generator = {}; //toObservable(new LogisticGenerator(parameters));
 
 $.widget("ui.logisticspinner", $.ui.spinner, {
     _format : function (value) {
@@ -135,7 +137,7 @@ function redraw() {
             let x0 = plot.xToChart(0);
             let x1 = plot.xToChart(1);
             let x_5 = plot.xToChart(0.5);
-            let y_5 = plot.yToChart(values.r / 2);
+            let y_5 = plot.yToChart(generator.parameters.r / 2);
 			
             let quadraticPath = svg.createPath();
             quadraticPath
@@ -154,9 +156,9 @@ function redraw() {
 		function writeLegends() {
 			$("#legends").remove();
 			let g = svg.group("legends");
-			svg.text(g, 30, 20, `Iteractions = ${values.iteractions}`); 
-			svg.text(g, 30, 32, `R = ${values.r}`);
-			svg.text(g, 30, 44, `x0 = ${values.x0}`);
+			svg.text(g, 30, 20, `Iteractions = ${generator.parameters.iteractions}`); 
+			svg.text(g, 30, 32, `R = ${generator.parameters.r}`);
+			svg.text(g, 30, 44, `x0 = ${generator.parameters.x0}`);
 			$("#logisticChart .foreground").prepend($("#legends"));
 		}
 		
@@ -183,9 +185,9 @@ function redraw() {
     function drawIteractions() {
 		let {svg, svgForeground} = prepareChart("iteractions");
 		
-        let ticksDistance = values.iteractions? (values.iteractions / 10): 1;
+        let ticksDistance = generator.parameters.iteractions? (generator.parameters.iteractions / 10): 1;
         svg.plot.xAxis
-        .scale(0, values.iteractions ? values.iteractions : 1)
+        .scale(0, generator.parameters.iteractions ? generator.parameters.iteractions : 1)
         .ticks(ticksDistance, 0, 0)
         .title("");
 		
@@ -211,10 +213,10 @@ function redraw() {
             iteractions : []
 		};
 		
-        let x = values.x0;
+        let x = generator.parameters.x0;
         data.iteractions.push(x);
-		_.range(1, values.iteractions).forEach((it) => {
-            x = (values.r * x * (1 - x));
+		_.range(1, generator.parameters.iteractions).forEach((it) => {
+            x = (generator.parameters.r * x * (1 - x));
             data.iteractions.push(x);
 		});
 		
@@ -232,40 +234,33 @@ function redraw() {
         return data;
 	}
 	
-	// console.time(`redraw ${values.iteractions}`);
+	// console.time(`redraw ${generator.parameters.iteractions}`);
 	
-	// console.time(`\tgenerateData ${values.iteractions}`);
+	// console.time(`\tgenerateData ${generator.parameters.iteractions}`);
     var data = generateData();
-	// console.timeEnd(`\tgenerateData ${values.iteractions}`);
+	// console.timeEnd(`\tgenerateData ${generator.parameters.iteractions}`);
 	
-	// console.time(`\tdrawLogistic ${values.iteractions}`);
+	// console.time(`\tdrawLogistic ${generator.parameters.iteractions}`);
     drawLogistic();
-	// console.timeEnd(`\tdrawLogistic ${values.iteractions}`);
+	// console.timeEnd(`\tdrawLogistic ${generator.parameters.iteractions}`);
 	
-	// console.time(`\tdrawIteractions ${values.iteractions}`);
+	// console.time(`\tdrawIteractions ${generator.parameters.iteractions}`);
     drawIteractions();
-	// console.timeEnd(`\tdrawIteractions ${values.iteractions}`);
+	// console.timeEnd(`\tdrawIteractions ${generator.parameters.iteractions}`);
 	
-	// console.timeEnd(`redraw ${values.iteractions}`);
+	// console.timeEnd(`redraw ${generator.parameters.iteractions}`);
 	// console.log("");
-}
-
-function refreshCharts(event, ui) {
-    if ($.isNumeric(ui.value)) {
-        values[$(`#${event.target.id}`).data("valueName")] = ui.value;
-        redraw();
-	}
 }
 
 function saveLogisticChart() {
 	let logisticChart = $("#logisticChart");
-	let filename = encodeURIComponent(`r=${values.r},x0=${values.x0},iteractions=${values.iteractions}.png`);
+	let filename = encodeURIComponent(`r=${generator.parameters.r},x0=${generator.parameters.x0},iteractions=${generator.parameters.iteractions}.png`);
 	let code = `<meta http-equiv="content-type" content="image/svg+xml"/>
 	<meta name="content-disposition" content="inline; filename=${filename}">
 	<link rel="stylesheet" type="text/css" href="css/style.css">
 	${logisticChart.svg('get').toSVG()}`;
 	let uriContent = "data:image/svg+xml"; //," + filename;
-
+	
 	let chartWindow = window.open(filename, filename, `left=0,top=0,menubar=1,titlebar=0,width=${logisticChart.width() + 50},height=${logisticChart.height() +50},toolbar=0,scrollbars=0,status=0`);
 	chartWindow.document.write(code);
 	chartWindow.document.close();
@@ -274,159 +269,181 @@ function saveLogisticChart() {
 
 function init() {
 	
-    const steps = [0.1, 0.01, 0.001, 0.0001, 0.00001];
-	
-	const actionsByKey = new Map([
-		['E', (hasShift) => {
-			if(hasShift) {
-				changeStep("rValue", false);
-			} else {
-				$('#rValue').logisticspinner( "stepDown" );
-			}
-		}],
-		['T', (hasShift) => {
-			if(hasShift) {
-				changeStep("rValue", true);
-			} else {
-				$('#rValue').logisticspinner( "stepUp" );
-			}
-		}],
-		['U', (hasShift) => {
-			$('#iteractionsValue').spinner( "stepDown" );
-		}],
-		['O', (hasShift) => {
-			$('#iteractionsValue').spinner( "stepUp" );
-		}],
-		['Z', (hasShift) => {
-			if(hasShift) {
-				changeStep("x0Value", false);
-			} else {
-				$('#x0Value').logisticspinner( "stepDown" );
-			}
-		}],
-		['C', (hasShift) => {
-			if(hasShift) {
-				changeStep("x0Value", true);
-			} else {
-				$('#x0Value').logisticspinner( "stepUp" );
-			}
-		}]
-	]);
-	
-	
     function centralize() {
         $("#main").position({
             of : "body"
 		});
 	}
 	
-	function changeStep(id, decreaseStep) {
-		let stepPos = $("#" + id).logisticspinner("option", "stepPos");
-		let delta = 0;
-		if (!decreaseStep && (stepPos > 0)) {
-			delta = -1;
-		} else if (decreaseStep && (stepPos < (steps.length - 1))) {
-			delta = +1;
+	function initControls() {
+		
+		function refreshCharts(event, ui) {
+			if (_.isNumber(ui.value)) {
+				generator.parameters[$(`#${event.target.id}`).data("valueName")] = ui.value;
+			}
 		}
 		
-		if (!!delta) {
-			stepPos += delta;
-			$("#" + id)
-			.logisticspinner("option", "step", steps[stepPos])
-			.logisticspinner("option", "stepPos", stepPos);
-		}
-	}
-	
-    function initFloatSpinner(id, valueName, max) {
+		const steps = [0.1, 0.01, 0.001, 0.0001, 0.00001];
 		
-		function handleStep(event, incrementEvent, decrementEvent) {
-            if (!event.ctrlKey) {
-                return;
+		const actionsByKey = new Map([
+			['E', (hasShift) => {
+				if(hasShift) {
+					changeStep("rValue", false);
+					} else {
+					$('#rValue').logisticspinner( "stepDown" );
+				}
+			}],
+			['T', (hasShift) => {
+				if(hasShift) {
+					changeStep("rValue", true);
+					} else {
+					$('#rValue').logisticspinner( "stepUp" );
+				}
+			}],
+			['U', (hasShift) => {
+				$('#iteractionsValue').spinner( "stepDown" );
+			}],
+			['O', (hasShift) => {
+				$('#iteractionsValue').spinner( "stepUp" );
+			}],
+			['Z', (hasShift) => {
+				if(hasShift) {
+					changeStep("x0Value", false);
+					} else {
+					$('#x0Value').logisticspinner( "stepDown" );
+				}
+			}],
+			['C', (hasShift) => {
+				if(hasShift) {
+					changeStep("x0Value", true);
+					} else {
+					$('#x0Value').logisticspinner( "stepUp" );
+				}
+			}]
+		]);
+		
+		function changeStep(id, decreaseStep) {
+			let stepPos = $("#" + id).logisticspinner("option", "stepPos");
+			let delta = 0;
+			if (!decreaseStep && (stepPos > 0)) {
+				delta = -1;
+				} else if (decreaseStep && (stepPos < (steps.length - 1))) {
+				delta = +1;
 			}
 			
-            if (incrementEvent(event)) { 
-                changeStep(event.target.id, false);
-			} else if (decrementEvent(event)) { 
-                changeStep(event.target.id, true);
+			if (!!delta) {
+				stepPos += delta;
+				$("#" + id)
+				.logisticspinner("option", "step", steps[stepPos])
+				.logisticspinner("option", "stepPos", stepPos);
 			}
 		}
 		
-        let handleMouse = (event) => handleStep(event, 
-		(e) => (e.which === 1), // Left Button
-		(e) => (e.which === 3)); // Right Button
-		
-        let handleKey = (event) =>  handleStep(event, 
-		(e) => (e.keyCode === 37), // Left Arrow
-		(e) => (e.keyCode === 39)); // Right Arrow
-		
-        const spinnerOptions = {
-            min : 0.00,
-            max : max,
-            stepPos : 1,
-            step : steps[1],
-            numberFormat : "n",
-            spin : refreshCharts,
-            change : refreshCharts,
-		};
-		
-        return $("#" + id)
-        .logisticspinner(spinnerOptions)
-        .mousedown(handleMouse)
-        .keydown(handleKey)
-        .bind("contextmenu", () => false)
-		.data("valueName", valueName);
-	}
-	
-    function initIteractionsSpinner() {
-        $("#iteractionsValue").spinner({
-            min : 0,
-            max : 2000,
-            step : 50,
-            spin : refreshCharts,
-            change : refreshCharts,
-		}).data("valueName", "iteractions");
-	}
-	
-    function initChart(svg, left, top, right, bottom, equalXY, yTicks) {
-        return svg.plot
-        .area(left, top, right, bottom)
-        .equalXY(equalXY)
-        .legend.show(false).end()
-        .gridlines('lightgrey', 'lightgrey')
-        .yAxis.scale(0.0, 1.0).ticks(yTicks, 0, 0).title("").end();
-	}
-	
-    function initLogisticChart(svg) {
-        initChart(svg, 0.06, 0.02, 0.98, 1.00, true, 0.1)
-        .xAxis.scale(0.0, 1.0).ticks(0.1, 0, 0).title("").end()
-        .addFunction("linear", (x) =>  x, [0, 1], 1, "GoldenRod", 2);
-	}
-	
-    function initIteractonsChart(svg) {
-        initChart(svg, 0.06, 0.05, 0.98, 0.90, false, 0.25);
-	}
-	
-	
-	
-    $(window).resize(centralize).keypress(function(event) {
-		let key = event.key.toUpperCase();
-		if(actionsByKey.has(key)) {
-			actionsByKey.get(key)(event.shiftKey);
+		function initFloatSpinner(id, valueName, max) {
+			
+			function handleStep(event, incrementEvent, decrementEvent) {
+				if (!event.ctrlKey) {
+					return;
+				}
+				
+				if (incrementEvent(event)) { 
+					changeStep(event.target.id, false);
+					} else if (decrementEvent(event)) { 
+					changeStep(event.target.id, true);
+				}
+			}
+			
+			let handleMouse = (event) => handleStep(event, 
+			(e) => (e.which === 1), // Left Button
+			(e) => (e.which === 3)); // Right Button
+			
+			let handleKey = (event) =>  handleStep(event, 
+			(e) => (e.keyCode === 37), // Left Arrow
+			(e) => (e.keyCode === 39)); // Right Arrow
+			
+			const spinnerOptions = {
+				min : 0.00,
+				max : max,
+				stepPos : 1,
+				step : steps[1],
+				numberFormat : "n",
+				spin : refreshCharts,
+				change : refreshCharts,
+			};
+			
+			return $("#" + id)
+			.logisticspinner(spinnerOptions)
+			.mousedown(handleMouse)
+			.keydown(handleKey)
+			.bind("contextmenu", () => false)
+			.data("valueName", valueName);
 		}
-	});
+		
+		function initIteractionsSpinner() {
+			$("#iteractionsValue").spinner({
+				min : 0,
+				max : 2000,
+				step : 50,
+				spin : refreshCharts,
+				change : refreshCharts,
+			}).data("valueName", "iteractions");
+		}
+		
+		
+		initFloatSpinner("rValue", "r", 4.00).focus();
+		initFloatSpinner("x0Value", "x0", 1.00);
+		initIteractionsSpinner();
+		
+		$(window).keypress(function(event) {
+			let key = event.key.toUpperCase();
+			if(actionsByKey.has(key)) {
+				actionsByKey.get(key)(event.shiftKey);
+			}});
+	}
 	
-    centralize();
-    initFloatSpinner("rValue", "r", 4.00).focus();
-    initFloatSpinner("x0Value", "x0", 1.00);
-    initIteractionsSpinner();
-    values = {
-        r : $("#rValue").logisticspinner("value"),
-        x0 : $("#x0Value").logisticspinner("value"),
-        iteractions : $("#iteractionsValue").spinner("value")
-	};
-    $('#logisticChart').svg(initLogisticChart).dblclick(saveLogisticChart);
-    $('#iteractionsChart').svg(initIteractonsChart);
-    redraw();
+	
+	function initCharts() {
+		
+		function initChart(svg, left, top, right, bottom, equalXY, yTicks) {
+			return svg.plot
+			.area(left, top, right, bottom)
+			.equalXY(equalXY)
+			.legend.show(false).end()
+			.gridlines('lightgrey', 'lightgrey')
+			.yAxis.scale(0.0, 1.0).ticks(yTicks, 0, 0).title("").end();
+		}
+		
+		function initLogisticChart(svg) {
+			initChart(svg, 0.06, 0.02, 0.98, 1.00, true, 0.1)
+			.xAxis.scale(0.0, 1.0).ticks(0.1, 0, 0).title("").end()
+			.addFunction("linear", (x) =>  x, [0, 1], 1, "GoldenRod", 2);
+		}
+		
+		function initIteractonsChart(svg) {
+			initChart(svg, 0.06, 0.05, 0.98, 0.90, false, 0.25);
+		}
+		
+		$('#logisticChart').svg(initLogisticChart).dblclick(saveLogisticChart);
+		$('#iteractionsChart').svg(initIteractonsChart);
+	}
+	
+	function initGenerator() {
+		generator = toObservable(new LogisticGenerator(new LogisticParameters(
+		$("#rValue").logisticspinner("value"),
+		$("#x0Value").logisticspinner("value"),
+		$("#iteractionsValue").spinner("value"))));
+		generator.parameters.addObserver((evt) => redraw());
+//		generator.values.addObserver((evt) => console.debug(evt));
+	}
+	
+	$(window).resize(centralize);
+	
+	initControls();
+	initCharts();
+	initGenerator()
+	
+	centralize();
+	redraw();
 }
 
 $(document).ready(init);
