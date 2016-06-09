@@ -1,3 +1,5 @@
+"use strict";
+
 const xMin = 0.0;
 const xMax = 1.0;
 const rMin = 0.0;

@@ -1,3 +1,5 @@
+"use strict";
+
 const READY = Symbol("Ready");
 const RUNNING = Symbol("Running");
 

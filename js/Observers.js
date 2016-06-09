@@ -1,4 +1,6 @@
 // Implementation of Observer pattern
+"use strict";
+
 
 function toObservable(obj) {
 	

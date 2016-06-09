@@ -1,8 +1,8 @@
 "use strict";
 
-let parameters = {}; //toObservable(new LogisticParameters());
+// let parameters = {}; //toObservable(new LogisticParameters());
 
-let generator = {}; //toObservable(new LogisticGenerator(parameters));
+// let generator = {}; //toObservable(new LogisticGenerator(parameters));
 
 $.widget("ui.logisticspinner", $.ui.spinner, {
     _format : function (value) {
@@ -22,7 +22,7 @@ $.extend($.svg._extensions[0][1].prototype, {
 	}
 });
 
-function redraw() {
+function redraw(generator) {
 	
 	const heatTrace = new Map([
 		[0, { // From Indigo [rgb( 75,   0, 130)] to Blue [rgb(  0,   0, 255)]
@@ -210,17 +210,11 @@ function redraw() {
 		
         let data = {
             logistic : [],
-            iteractions : []
+            iteractions : generator.values
 		};
 		
-        let x = generator.parameters.x0;
-        data.iteractions.push(x);
-		_.range(1, generator.parameters.iteractions).forEach((it) => {
-            x = (generator.parameters.r * x * (1 - x));
-            data.iteractions.push(x);
-		});
 		
-        x = data.iteractions[0];
+        let x = data.iteractions[0];
         let y = 0;
         data.logistic.push({x, y});
 		_.range(1, data.iteractions.length).forEach((it) => {
@@ -277,11 +271,7 @@ function init() {
 	
 	function initControls() {
 		
-		function refreshCharts(event, ui) {
-			if (_.isNumber(ui.value)) {
-				generator.parameters[$(`#${event.target.id}`).data("valueName")] = ui.value;
-			}
-		}
+	
 		
 		const steps = [0.1, 0.01, 0.001, 0.0001, 0.00001];
 		
@@ -365,10 +355,8 @@ function init() {
 				min : 0.00,
 				max : max,
 				stepPos : 1,
-				step : steps[1],
+				step : steps[0],
 				numberFormat : "n",
-				spin : refreshCharts,
-				change : refreshCharts,
 			};
 			
 			return $("#" + id)
@@ -384,14 +372,12 @@ function init() {
 				min : 0,
 				max : 2000,
 				step : 50,
-				spin : refreshCharts,
-				change : refreshCharts,
 			}).data("valueName", "iteractions");
 		}
 		
 		
-		initFloatSpinner("rValue", "r", 4.00).focus();
-		initFloatSpinner("x0Value", "x0", 1.00);
+		initFloatSpinner("rValue", "r", 4.0).focus();
+		initFloatSpinner("x0Value", "x0", 1.0);
 		initIteractionsSpinner();
 		
 		$(window).keypress(function(event) {
@@ -428,22 +414,64 @@ function init() {
 	}
 	
 	function initGenerator() {
-		generator = toObservable(new LogisticGenerator(new LogisticParameters(
+		let generator = toObservable(new LogisticGenerator(new LogisticParameters(
 		$("#rValue").logisticspinner("value"),
 		$("#x0Value").logisticspinner("value"),
 		$("#iteractionsValue").spinner("value"))));
-		generator.parameters.addObserver((evt) => redraw());
-//		generator.values.addObserver((evt) => console.debug(evt));
+		
+		generator.generate();
+		
+//		generator.parameters.addObserver((evt) => redraw(evt.target));
+		
+		return generator;
 	}
+	
+	function initPlotter(generator) {
+		let plotter = new Plotter();
+
+		generator.parameters.addObserver((evt) => plotter.redraw(generator, evt.newValue));
+		generator.values.addObserver((evt) => {
+			if(evt.property === "length" && (evt.newVaue === 0)) {
+				plotter.clean();
+			} 
+			// else {
+				// plotter.redraw(generator, evt.newValue);
+			// }
+		});
+		
+		return plotter;
+	}
+	
+	function bindControls(generator) {
+	
+		let refreshCharts = (event, ui) => {
+			if (_.isNumber(ui.value)) {
+				generator.parameters[$(`#${event.target.id}`).data("valueName")] = ui.value;
+			}
+		}
+
+		let params = {
+			spin : refreshCharts,
+			change : refreshCharts,
+		};
+
+		$("#rValue").logisticspinner(params);
+		$("#x0Value").logisticspinner(params);
+		$("#iteractionsValue").spinner(params);
+	}
+
 	
 	$(window).resize(centralize);
 	
 	initControls();
 	initCharts();
-	initGenerator()
+	let generator = initGenerator();
+	bindControls(generator);
+	let plotter = initPlotter(generator);
+	
 	
 	centralize();
-	redraw();
+	plotter.redraw(generator);
 }
 
 $(document).ready(init);
