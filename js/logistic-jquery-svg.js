@@ -173,8 +173,13 @@ function bindControls(generator) {
 
 function initPlotter(generator) {
 	let plotter = new Plotter();
+	let logisticPlotter = new LogisticPlotter();
+	let iteractionsPlotter = new IteractionsPlotter();
 	
-	generator.parameters.addObserver((evt) => plotter.redraw(generator, evt.newValue));
+	generator.parameters.addObserver((evt) => {
+		iteractionsPlotter.redraw(generator, evt.newValue)
+		logisticPlotter.redraw(generator, evt.newValue)
+	});
 	
 	generator.values.addObserver((evt) => {
 		if(evt.property === "length" && (evt.newVaue === 0)) {
@@ -186,7 +191,7 @@ function initPlotter(generator) {
 	});
 	
 	
-	return plotter;
+	return {iteractionsPlotter, logisticPlotter};
 }
 
 $(document).ready(() => {
@@ -196,9 +201,10 @@ $(document).ready(() => {
 	initControls();
 	let generator = initGenerator();
 	bindControls(generator);
-	let plotter = initPlotter(generator);
+	let {iteractionsPlotter, logisticPlotter} = initPlotter(generator);
 	
 	centralize();
 	generator.generate();
-	plotter.redraw(generator);
+	iteractionsPlotter.redraw(generator)
+	logisticPlotter.redraw(generator)
 });

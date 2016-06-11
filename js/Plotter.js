@@ -65,7 +65,7 @@ class Plotter {
 	/**
 	* Make adjusts on charts which can not be done using the JQuary.SVG.plot API.
 	*/
-	adjustChart(chartId, posXLabels, fontSize, adjustLabels) {
+	_adjustChart(chartId, posXLabels, fontSize, adjustLabels) {
 
 		function formatAxis(idAxis, axisType, pos, axis0Type, _0Type) {
 			const axis = $(`#${chartId} g.${idAxis}`);
@@ -86,7 +86,7 @@ class Plotter {
 		$(`#${chartId} g.xAxis, #${chartId} g.yAxis`).remove();
 	}
 
-	drawSerie(serie, getX, getY, alpha, serieName, svg, svgForeground) {
+	_drawSerie(serie, getX, getY, alpha, serieName, svg, svgForeground) {
 		
 		let calculateColor = (i) => {
 			const stage = Math.floor(i / stageSize);
@@ -122,6 +122,10 @@ class Plotter {
 		_.range(1, serie.length).forEach(plot);
 	}
 
+}
+
+class LogisticPlotter extends Plotter {
+	
 	drawLogistic(generator) {
 		
 		/*
@@ -182,7 +186,7 @@ class Plotter {
 		
 		const a0 = 0.5;
 		const aMax = 0.95;
-		this.drawSerie(logistic, 
+		this._drawSerie(logistic, 
 		(i) => logistic[i].x, 
 		(i) => logistic[i].y, 
 		(i) => a0 + (aMax - a0) * (i / logistic.length),
@@ -191,30 +195,8 @@ class Plotter {
 		this.logisticChart.plot.redraw();
 		
 		writeLegends();
-		this.adjustChart("logisticChart", 395, 13, function (index, element) {
+		this._adjustChart("logisticChart", 395, 13, function (index, element) {
 			$(element).text($.number((1 + index) / 10, 1));
-		});
-	}
-
-	drawIteractions(generator, lastPosition) {
-		let ticksDistance = generator.values.length? (generator.values.length / 10): 1;
-		this.iteractionsChart.plot.xAxis
-			.scale(0, Math.max(generator.values.length, 1))
-			.ticks(ticksDistance, 0, 0)
-			.title("");
-
-		this.drawSerie(generator.values, 
-			(i) =>  i + 1,
-			(i) => generator.values[i],
-			(i) => 1,
-			"iteractions", this.iteractionsChart, this.iteractionsForeground)
-
-		this.iteractionsChart.plot.redraw();
-		this.adjustChart("iteractionsChart", 99, 10, function (index, element) {
-			let el = $(element);
-			if (el.parent().attr("class") === "yAxisLabels") {
-				el.text($.number(el.text(), 2));
-			}
 		});
 	}
 
@@ -233,13 +215,41 @@ class Plotter {
 		chartWindow.focus();
 	}
 
-	redraw(generator, lastPosition) {
-		$("#iteractionsChart path, #logisticChart path").remove();
-		this.drawLogistic(generator, lastPosition);
-		this.drawIteractions(generator, lastPosition);
+	redraw(generator) {
+		$("#logisticChart path").remove();
+		this.drawLogistic(generator);
+	}
+}
+
+class IteractionsPlotter extends Plotter {
+	
+	drawIteractions(generator) {
+		let ticksDistance = generator.values.length? (generator.values.length / 10): 1;
+		this.iteractionsChart.plot.xAxis
+			.scale(0, Math.max(generator.values.length, 1))
+			.ticks(ticksDistance, 0, 0)
+			.title("");
+
+		this._drawSerie(generator.values, 
+			(i) =>  i + 1,
+			(i) => generator.values[i],
+			(i) => 1,
+			"iteractions", this.iteractionsChart, this.iteractionsForeground)
+
+		this.iteractionsChart.plot.redraw();
+		this._adjustChart("iteractionsChart", 99, 10, function (index, element) {
+			let el = $(element);
+			if (el.parent().attr("class") === "yAxisLabels") {
+				el.text($.number(el.text(), 2));
+			}
+		});
+	}
+	
+	redraw(generator) {
+		$("#iteractionsChart path").remove();
+		this.drawIteractions(generator);
 	}
 
-	clean() {
-		$("#iteractionsChart path, #logisticChart path").remove();
-	}
+	
+
 }
