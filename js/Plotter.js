@@ -2,7 +2,7 @@
 
 class Plotter {
 	
-	constructor(id, left, top, right, bottom, equalXY, yTicks) {
+	constructor(id, left, top, right, bottom, equalXY, yTicks, drawFunctions, adjustParameters) {
 		function initChart(svg) {
 			return svg.plot
 			.area(left, top, right, bottom)
@@ -15,7 +15,9 @@ class Plotter {
 		this.id = id;
 		this.chartId = `${id}Chart`;
 		this.chart = $(`#${this.chartId}`).svg(initChart).svg("get");
-		this.foreground = $(`#${this.chartId} g.foreground`).svg("get")
+		this.foreground = $(`#${this.chartId} g.foreground`).svg("get");
+		this.drawFunctions = drawFunctions;
+		this.adjustParameters = adjustParameters;
 		
 		this.heatTrace = new Map([
 			[0, { // From Indigo [rgb( 75,   0, 130)] to Blue [rgb(  0,   0, 255)]
@@ -55,7 +57,7 @@ class Plotter {
 	/**
 		* Make adjusts on charts which can not be done using the JQuary.SVG.plot API.
 	*/
-	_adjustChart(posXLabels, fontSize, adjustLabels) {
+	_adjustChart() {
 		
 		let formatAxis = (idAxis, axisType, pos, axis0Type, _0Type) => {
 			const axis = $(`#${this.chartId} g.${idAxis}`);
@@ -63,11 +65,11 @@ class Plotter {
 			
 			return axis.children("text")
 			.attr(axisType, pos)
-			.css("font-size", fontSize + "px")
-			.each(adjustLabels);
+			.css("font-size", this.adjustParameters.fontSize + "px")
+			.each(this.adjustParameters.adjustLabels);
 		}
 		
-		formatAxis("xAxisLabels", "y", posXLabels, "x", "23");
+		formatAxis("xAxisLabels", "y", this.adjustParameters.posXLabels, "x", "23");
 		formatAxis("yAxisLabels", "x", 20, "y", "381").each(function () {
 			$(this).attr("y", parseInt($(this).attr("y")) + 5);
 		});
@@ -76,7 +78,7 @@ class Plotter {
 		$(`#${this.chartId} g.xAxis, #${this.chartId} g.yAxis`).remove();
 	}
 	
-	_drawSerie(serie, getX, getY, alpha) {
+	_drawSerie(serie) {
 		
 		let calculateColor = (i) => {
 			const stage = Math.floor(i / stageSize);
@@ -86,7 +88,7 @@ class Plotter {
 			const r = Math.floor(color.r(pos));
 			const g = Math.floor(color.g(pos));
 			const b = Math.floor(color.b(pos));
-			const a = s.numberFormat(alpha(i), 3); 
+			const a = s.numberFormat(this.drawFunctions.alpha(serie, i), 3); 
 			
 			return `rgba(${r}, ${g}, ${b}, ${a})`;
 		}
@@ -96,8 +98,8 @@ class Plotter {
 			const plot = this.chart.plot;
 			const color = calculateColor(i);
 			
-			path.moveTo(plot.xToChart(getX(i-1)), plot.yToChart(getY(i-1)));
-			path.line(plot.xToChart(getX(i)), plot.yToChart(getY(i)));
+			path.moveTo(plot.xToChart(this.drawFunctions.getX(serie, i-1)), plot.yToChart(this.drawFunctions.getY(serie, i-1)));
+			path.line(plot.xToChart(this.drawFunctions.getX(serie, i)), plot.yToChart(this.drawFunctions.getY(serie, i)));
 			this.chart.path(this.foreground, path, {
 				id : `${this.id}${i}`,
 				fill : 'none',
@@ -121,7 +123,22 @@ class Plotter {
 class LogisticPlotter extends Plotter {
 	
 	constructor() {
-		super('logistic', 0.06, 0.02, 0.98, 1.00, true, 0.1);
+		const a0 = 0.5;
+		const aMax = 0.95;
+		let drawFunctions = {
+			getX: (series, i) => series[i].x, 
+			getY: (series, i) => series[i].y, 
+			alpha: (series, i) => a0 + (aMax - a0) * (i / series.length)
+		};
+		let adjustParameters = {
+			posXLabels: 395, 
+			fontSize: 13, 
+			adjustLabels: (index, element) => {
+				$(element).text($.number((1 + index) / 10, 1));
+			}
+		};
+		super('logistic', 0.06, 0.02, 0.98, 1.00, true, 0.1, drawFunctions, adjustParameters);
+		
 		this.chart.plot.xAxis.scale(0.0, 1.0).ticks(0.1, 0, 0).title("").end()
 		.addFunction("linear", (x) =>  x, [0, 1], 1, "GoldenRod", 2);
 	}
@@ -183,21 +200,15 @@ class LogisticPlotter extends Plotter {
 		this._clean();
 		
 		this.drawParable(generator);
-		let logistic = this.prepareLogistic(generator);
 		this.writeLegends(generator);
 		
-		const a0 = 0.5;
-		const aMax = 0.95;
 		
-		this._drawSerie(logistic, 
-		(i) => logistic[i].x, 
-		(i) => logistic[i].y, 
-		(i) => a0 + (aMax - a0) * (i / logistic.length));
-		this.chart.plot.redraw();
-		this._adjustChart(395, 13, (index, element) => {
-			$(element).text($.number((1 + index) / 10, 1));
-		});
+		let serie = this.prepareLogistic(generator);
 
+		this._drawSerie(serie);
+		this.chart.plot.redraw();
+		this._adjustChart();
+		
 	}
 	
 	saveLogisticChart() {
@@ -220,7 +231,22 @@ class LogisticPlotter extends Plotter {
 class IteractionsPlotter extends Plotter {
 	
 	constructor() {
-		super('iteractions', 0.06, 0.05, 0.98, 0.90, false, 0.25);
+		let drawFunctions = {
+			getX: (series, i) => i + 1, 
+			getY: (series, i) => series[i], 
+			alpha: (series, i) => 1
+		};
+		let adjustParameters = {
+			posXLabels: 99, 
+			fontSize: 10, 
+			adjustLabels: (index, element) => {
+				let el = $(element);
+				if (el.parent().attr("class") === "yAxisLabels") {
+					el.text($.number(el.text(), 2));
+				}
+			}
+		};
+		super('iteractions', 0.06, 0.05, 0.98, 0.90, false, 0.25, drawFunctions, adjustParameters);
 	}
 	
 	redraw(generator) {
@@ -232,17 +258,11 @@ class IteractionsPlotter extends Plotter {
 		.ticks(ticksDistance, 0, 0)
 		.title("");
 		
-		super._drawSerie(generator.values, 
-		(i) =>  i + 1,
-		(i) => generator.values[i],
-		(i) => 1);
+		let serie = generator.values;
+		
+		super._drawSerie(serie);
 		this.chart.plot.redraw();
-		this._adjustChart(99, 10, (index, element) => {
-			let el = $(element);
-			if (el.parent().attr("class") === "yAxisLabels") {
-				el.text($.number(el.text(), 2));
-			}
-		});
+		this._adjustChart();
 	}
 	
 	
