@@ -1,9 +1,9 @@
 "use strict";
 
 class Plotter {
-
-	constructor() {
-		function initChart(svg, left, top, right, bottom, equalXY, yTicks) {
+	
+	constructor(id, left, top, right, bottom, equalXY, yTicks) {
+		function initChart(svg) {
 			return svg.plot
 			.area(left, top, right, bottom)
 			.equalXY(equalXY)
@@ -12,20 +12,10 @@ class Plotter {
 			.yAxis.scale(0.0, 1.0).ticks(yTicks, 0, 0).title("").end();
 		}
 		
-		function initLogisticChart(svg) {
-			initChart(svg, 0.06, 0.02, 0.98, 1.00, true, 0.1)
-			.xAxis.scale(0.0, 1.0).ticks(0.1, 0, 0).title("").end()
-			.addFunction("linear", (x) =>  x, [0, 1], 1, "GoldenRod", 2);
-		}
-		
-		function initIteractonsChart(svg) {
-			initChart(svg, 0.06, 0.05, 0.98, 0.90, false, 0.25);
-		}
-		
-		this.logisticChart = $('#logisticChart').svg(initLogisticChart).svg("get"); //.dblclick(this.saveLogisticChart);
-		this.logisticForeground = $("#logisticChart g.foreground").svg("get")
-		this.iteractionsChart = $('#iteractionsChart').svg(initIteractonsChart).svg("get");
-		this.iteractionsForeground = $("#iteractionsChart g.foreground").svg("get")
+		this.id = id;
+		this.chartId = `${id}Chart`;
+		this.chart = $(`#${this.chartId}`).svg(initChart).svg("get");
+		this.foreground = $(`#${this.chartId} g.foreground`).svg("get")
 		
 		this.heatTrace = new Map([
 			[0, { // From Indigo [rgb( 75,   0, 130)] to Blue [rgb(  0,   0, 255)]
@@ -61,32 +51,32 @@ class Plotter {
 			}]
 		]);
 	}
-
+	
 	/**
-	* Make adjusts on charts which can not be done using the JQuary.SVG.plot API.
+		* Make adjusts on charts which can not be done using the JQuary.SVG.plot API.
 	*/
-	_adjustChart(chartId, posXLabels, fontSize, adjustLabels) {
-
-		function formatAxis(idAxis, axisType, pos, axis0Type, _0Type) {
-			const axis = $(`#${chartId} g.${idAxis}`);
-			axis.appendTo(`#${chartId} g.background`);
-
+	_adjustChart(posXLabels, fontSize, adjustLabels) {
+		
+		let formatAxis = (idAxis, axisType, pos, axis0Type, _0Type) => {
+			const axis = $(`#${this.chartId} g.${idAxis}`);
+			axis.appendTo(`#${this.chartId} g.background`);
+			
 			return axis.children("text")
-				.attr(axisType, pos)
-				.css("font-size", fontSize + "px")
-				.each(adjustLabels);
+			.attr(axisType, pos)
+			.css("font-size", fontSize + "px")
+			.each(adjustLabels);
 		}
-
+		
 		formatAxis("xAxisLabels", "y", posXLabels, "x", "23");
 		formatAxis("yAxisLabels", "x", 20, "y", "381").each(function () {
 			$(this).attr("y", parseInt($(this).attr("y")) + 5);
 		});
-		$(`#${chartId} g.background rect`).appendTo(`#${chartId} g.background`);
-		$(`#${chartId} path`).appendTo(`#${chartId} g.foreground`);
-		$(`#${chartId} g.xAxis, #${chartId} g.yAxis`).remove();
+		$(`#${this.chartId} g.background rect`).appendTo(`#${this.chartId} g.background`);
+		$(`#${this.chartId} path`).appendTo(`#${this.chartId} g.foreground`);
+		$(`#${this.chartId} g.xAxis, #${this.chartId} g.yAxis`).remove();
 	}
-
-	_drawSerie(serie, getX, getY, alpha, serieName, svg, svgForeground) {
+	
+	_drawSerie(serie, getX, getY, alpha) {
 		
 		let calculateColor = (i) => {
 			const stage = Math.floor(i / stageSize);
@@ -101,19 +91,19 @@ class Plotter {
 			return `rgba(${r}, ${g}, ${b}, ${a})`;
 		}
 		
-		function plot(i) {
-			const path = svg.createPath();
-			const plot = svg.plot;
+		let plot = (i) => {
+			const path = this.chart.createPath();
+			const plot = this.chart.plot;
 			const color = calculateColor(i);
 			
 			path.moveTo(plot.xToChart(getX(i-1)), plot.yToChart(getY(i-1)));
 			path.line(plot.xToChart(getX(i)), plot.yToChart(getY(i)));
-			svg.path(svgForeground, path, {
-				id : (serieName + i),
+			this.chart.path(this.foreground, path, {
+				id : `${this.id}${i}`,
 				fill : 'none',
 				stroke : color,
 				strokeWidth : 1,
-				class : serieName
+				class : this.id
 			});
 		}
 		
@@ -121,123 +111,133 @@ class Plotter {
 		
 		_.range(1, serie.length).forEach(plot);
 	}
-
+	
+	_clean() {
+		$(`#${this.chartId} path`).remove();
+	}
+	
 }
 
 class LogisticPlotter extends Plotter {
 	
-	drawLogistic(generator) {
-		
-		/*
-			* Draw quadratic equation using quadratic Bézier curve.
-			* The parable extremities are the points (0,0) and (1, 0).
-			*
-		*/
-		let drawParable = () => {
-			let plot = this.logisticChart.plot;
-			let y0 = plot.yToChart(0);
-			let x0 = plot.xToChart(0);
-			let x1 = plot.xToChart(1);
-			let x_5 = plot.xToChart(0.5);
-			let y_5 = plot.yToChart(generator.parameters.r / 2);
-			
-			let quadraticPath = this.logisticChart.createPath();
-			quadraticPath
-			.move(x0, y0)
-			.curveQ(x_5, y_5, x1, y0);
-			this.logisticChart.path(this.logisticForeground,
-			quadraticPath, {
-				id: 'parable',
-				fill : 'none',
-				stroke : "Violet",
-				strokeWidth : 2,
-				class : "quadratic"
-			});
-		}
-		
-		let writeLegends = () => {
-			$("#legends").remove();
-			let g = this.logisticChart.group("legends");
-			this.logisticChart.text(g, 30, 20, `Iteractions = ${generator.parameters.iteractions}`); 
-			this.logisticChart.text(g, 30, 32, `R = ${generator.parameters.r}`);
-			this.logisticChart.text(g, 30, 44, `x0 = ${generator.parameters.x0}`);
-			$("#logisticChart .foreground").prepend($("#legends"));
-		}
+	constructor() {
+		super('logistic', 0.06, 0.02, 0.98, 1.00, true, 0.1);
+		this.chart.plot.xAxis.scale(0.0, 1.0).ticks(0.1, 0, 0).title("").end()
+		.addFunction("linear", (x) =>  x, [0, 1], 1, "GoldenRod", 2);
+	}
 	
-		let prepareLogistic = () => {
-			let logistic = [];
-			let x = generator.values[0];
-			let y = 0;
+	drawParable(generator) {
+		let plot = this.chart.plot;
+		let y0 = plot.yToChart(0);
+		let x0 = plot.xToChart(0);
+		let x1 = plot.xToChart(1);
+		let x_5 = plot.xToChart(0.5);
+		let y_5 = plot.yToChart(generator.parameters.r / 2);
+		
+		let quadraticPath = this.chart.createPath();
+		quadraticPath
+		.move(x0, y0)
+		.curveQ(x_5, y_5, x1, y0);
+		this.chart.path(this.foreground,
+		quadraticPath, {
+			id: 'parable',
+			fill : 'none',
+			stroke : "Violet",
+			strokeWidth : 2,
+			class : "quadratic"
+		});
+	}
+	
+	/*
+		* Draw quadratic equation using quadratic Bézier curve.
+		* The parable extremities are the points (0,0) and (1, 0).
+		*
+	*/
+	
+	writeLegends(generator) {
+		$("#legends").remove();
+		let g = this.chart.group("legends");
+		this.chart.text(g, 30, 20, `Iteractions = ${generator.parameters.iteractions}`); 
+		this.chart.text(g, 30, 32, `R = ${generator.parameters.r}`);
+		this.chart.text(g, 30, 44, `x0 = ${generator.parameters.x0}`);
+		$("#chart .foreground").prepend($("#legends"));
+	}
+	
+	prepareLogistic(generator)  {
+		let logistic = [];
+		let x = generator.values[0];
+		let y = 0;
+		logistic.push({x, y});
+		_.range(1, generator.values.length).forEach((it) => {
+			y = generator.values[it];
+			logistic.push({x, y : x});
 			logistic.push({x, y});
-			_.range(1, generator.values.length).forEach((it) => {
-				y = generator.values[it];
-				logistic.push({x, y : x});
-				logistic.push({x, y});
-				x = y;
-			});
-			logistic.splice(1, 1); // workaround
-			
-			return logistic;
-		}
+			x = y;
+		});
+		logistic.splice(1, 1); // workaround
 		
-		drawParable();
+		return logistic;
+	}
+	
+	redraw(generator) {
+		this._clean();
 		
-		let logistic = prepareLogistic();
+		this.drawParable(generator);
+		let logistic = this.prepareLogistic(generator);
+		this.writeLegends(generator);
 		
 		const a0 = 0.5;
 		const aMax = 0.95;
+		
 		this._drawSerie(logistic, 
 		(i) => logistic[i].x, 
 		(i) => logistic[i].y, 
-		(i) => a0 + (aMax - a0) * (i / logistic.length),
-		"logistic", this.logisticChart, this.logisticForeground);
-		
-		this.logisticChart.plot.redraw();
-		
-		writeLegends();
-		this._adjustChart("logisticChart", 395, 13, function (index, element) {
+		(i) => a0 + (aMax - a0) * (i / logistic.length));
+		this.chart.plot.redraw();
+		this._adjustChart(395, 13, (index, element) => {
 			$(element).text($.number((1 + index) / 10, 1));
 		});
-	}
 
+	}
+	
 	saveLogisticChart() {
-		let logisticChart = $("#logisticChart");
+		let chart = $("#chart");
 		let filename = encodeURIComponent(`r=${generator.parameters.r},x0=${generator.parameters.x0},iteractions=${generator.parameters.iteractions}.png`);
 		let code = `<meta http-equiv="content-type" content="image/svg+xml"/>
 		<meta name="content-disposition" content="inline; filename=${filename}">
 		<link rel="stylesheet" type="text/css" href="css/style.css">
-		${logisticChart.svg('get').toSVG()}`;
+		${chart.svg('get').toSVG()}`;
 		let uriContent = "data:image/svg+xml"; //," + filename;
 		
-		let chartWindow = window.open(filename, filename, `left=0,top=0,menubar=1,titlebar=0,width=${logisticChart.width() + 50},height=${logisticChart.height() +50},toolbar=0,scrollbars=0,status=0`);
+		let chartWindow = window.open(filename, filename, `left=0,top=0,menubar=1,titlebar=0,width=${chart.width() + 50},height=${chart.height() +50},toolbar=0,scrollbars=0,status=0`);
 		chartWindow.document.write(code);
 		chartWindow.document.close();
 		chartWindow.focus();
 	}
-
-	redraw(generator) {
-		$("#logisticChart path").remove();
-		this.drawLogistic(generator);
-	}
+	
 }
 
 class IteractionsPlotter extends Plotter {
 	
-	drawIteractions(generator) {
+	constructor() {
+		super('iteractions', 0.06, 0.05, 0.98, 0.90, false, 0.25);
+	}
+	
+	redraw(generator) {
+		this._clean();
+		
 		let ticksDistance = generator.values.length? (generator.values.length / 10): 1;
-		this.iteractionsChart.plot.xAxis
-			.scale(0, Math.max(generator.values.length, 1))
-			.ticks(ticksDistance, 0, 0)
-			.title("");
-
-		this._drawSerie(generator.values, 
-			(i) =>  i + 1,
-			(i) => generator.values[i],
-			(i) => 1,
-			"iteractions", this.iteractionsChart, this.iteractionsForeground)
-
-		this.iteractionsChart.plot.redraw();
-		this._adjustChart("iteractionsChart", 99, 10, function (index, element) {
+		this.chart.plot.xAxis
+		.scale(0, Math.max(generator.values.length, 1))
+		.ticks(ticksDistance, 0, 0)
+		.title("");
+		
+		super._drawSerie(generator.values, 
+		(i) =>  i + 1,
+		(i) => generator.values[i],
+		(i) => 1);
+		this.chart.plot.redraw();
+		this._adjustChart(99, 10, (index, element) => {
 			let el = $(element);
 			if (el.parent().attr("class") === "yAxisLabels") {
 				el.text($.number(el.text(), 2));
@@ -245,11 +245,5 @@ class IteractionsPlotter extends Plotter {
 		});
 	}
 	
-	redraw(generator) {
-		$("#iteractionsChart path").remove();
-		this.drawIteractions(generator);
-	}
-
 	
-
 }

@@ -172,23 +172,21 @@ function bindControls(generator) {
 }
 
 function initPlotter(generator) {
-	let plotter = new Plotter();
 	let logisticPlotter = new LogisticPlotter();
 	let iteractionsPlotter = new IteractionsPlotter();
 	
 	generator.parameters.addObserver((evt) => {
-		iteractionsPlotter.redraw(generator, evt.newValue)
-		logisticPlotter.redraw(generator, evt.newValue)
+		iteractionsPlotter.redraw(generator);
+		logisticPlotter.redraw(generator);
 	});
 	
+	/*
 	generator.values.addObserver((evt) => {
 		if(evt.property === "length" && (evt.newVaue === 0)) {
 			plotter.clean();
 		} 
-		// else {
-		// plotter.redraw(generator, evt.newValue);
-		// }
 	});
+	*/
 	
 	
 	return {iteractionsPlotter, logisticPlotter};
