@@ -2,22 +2,20 @@
 
 class Plotter {
 	
-	constructor(id, left, top, right, bottom, equalXY, yTicks, drawFunctions, adjustParameters) {
-		function initChart(svg) {
+	constructor(id, initParams) {
+		function initChart(svg) { 
 			return svg.plot
-			.area(left, top, right, bottom)
-			.equalXY(equalXY)
+			.area(initParams.left, initParams.top, initParams.right, initParams.bottom)
+			.equalXY(initParams.equalXY)
 			.legend.show(false).end()
 			.gridlines('lightgrey', 'lightgrey')
-			.yAxis.scale(0.0, 1.0).ticks(yTicks, 0, 0).title("").end();
+			.yAxis.scale(0.0, 1.0).ticks(initParams.yTicks, 0, 0).title("").end();
 		}
 		
 		this.id = id;
 		this.chartId = `${id}Chart`;
 		this.chart = $(`#${this.chartId}`).svg(initChart).svg("get");
 		this.foreground = $(`#${this.chartId} g.foreground`).svg("get");
-		this.drawFunctions = drawFunctions;
-		this.adjustParameters = adjustParameters;
 		
 		this.heatTrace = new Map([
 			[0, { // From Indigo [rgb( 75,   0, 130)] to Blue [rgb(  0,   0, 255)]
@@ -114,6 +112,15 @@ class Plotter {
 		_.range(1, serie.length).forEach(plot);
 	}
 	
+	redraw(generator) {
+		this._clean();
+		this.prepareDraw(generator);
+		let serie = this.generateSerie(generator);
+		this._drawSerie(serie);
+		this.chart.plot.redraw();
+		this._adjustChart();
+	}
+	
 	_clean() {
 		$(`#${this.chartId} path`).remove();
 	}
@@ -123,22 +130,23 @@ class Plotter {
 class LogisticPlotter extends Plotter {
 	
 	constructor() {
+		super('logistic', { left: 0.06, top: 0.02, right: 0.98, bottom: 1.00, equalXY: true, yTicks: 0.1 });
+		
 		const a0 = 0.5;
 		const aMax = 0.95;
-		let drawFunctions = {
+		this.drawFunctions = {
 			getX: (series, i) => series[i].x, 
 			getY: (series, i) => series[i].y, 
 			alpha: (series, i) => a0 + (aMax - a0) * (i / series.length)
 		};
-		let adjustParameters = {
+		this.adjustParameters = {
 			posXLabels: 395, 
 			fontSize: 13, 
 			adjustLabels: (index, element) => {
 				$(element).text($.number((1 + index) / 10, 1));
 			}
 		};
-		super('logistic', 0.06, 0.02, 0.98, 1.00, true, 0.1, drawFunctions, adjustParameters);
-		
+
 		this.chart.plot.xAxis.scale(0.0, 1.0).ticks(0.1, 0, 0).title("").end()
 		.addFunction("linear", (x) =>  x, [0, 1], 1, "GoldenRod", 2);
 	}
@@ -180,7 +188,13 @@ class LogisticPlotter extends Plotter {
 		$("#chart .foreground").prepend($("#legends"));
 	}
 	
-	prepareLogistic(generator)  {
+	
+	prepareDraw(generator) {
+		this.drawParable(generator);
+		this.writeLegends(generator);
+	}
+	
+	generateSerie(generator)  {
 		let logistic = [];
 		let x = generator.values[0];
 		let y = 0;
@@ -194,21 +208,6 @@ class LogisticPlotter extends Plotter {
 		logistic.splice(1, 1); // workaround
 		
 		return logistic;
-	}
-	
-	redraw(generator) {
-		this._clean();
-		
-		this.drawParable(generator);
-		this.writeLegends(generator);
-		
-		
-		let serie = this.prepareLogistic(generator);
-
-		this._drawSerie(serie);
-		this.chart.plot.redraw();
-		this._adjustChart();
-		
 	}
 	
 	saveLogisticChart() {
@@ -231,12 +230,14 @@ class LogisticPlotter extends Plotter {
 class IteractionsPlotter extends Plotter {
 	
 	constructor() {
-		let drawFunctions = {
+		super('iteractions', { left: 0.06, top: 0.05, right: 0.98, bottom: 0.90, equalXY: false, yTicks: 0.25 });
+
+		this.drawFunctions = {
 			getX: (series, i) => i + 1, 
 			getY: (series, i) => series[i], 
 			alpha: (series, i) => 1
 		};
-		let adjustParameters = {
+		this.adjustParameters = {
 			posXLabels: 99, 
 			fontSize: 10, 
 			adjustLabels: (index, element) => {
@@ -246,23 +247,18 @@ class IteractionsPlotter extends Plotter {
 				}
 			}
 		};
-		super('iteractions', 0.06, 0.05, 0.98, 0.90, false, 0.25, drawFunctions, adjustParameters);
 	}
 	
-	redraw(generator) {
-		this._clean();
-		
+	prepareDraw(generator) {
 		let ticksDistance = generator.values.length? (generator.values.length / 10): 1;
 		this.chart.plot.xAxis
 		.scale(0, Math.max(generator.values.length, 1))
 		.ticks(ticksDistance, 0, 0)
 		.title("");
-		
-		let serie = generator.values;
-		
-		super._drawSerie(serie);
-		this.chart.plot.redraw();
-		this._adjustChart();
+	}
+	
+	generateSerie(generator) {
+		return generator.values;
 	}
 	
 	
