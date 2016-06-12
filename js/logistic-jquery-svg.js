@@ -173,13 +173,27 @@ function bindControls(generator) {
 	$("#iteractionsValue").spinner(params);
 }
 
+var showTime = false;
+
+function redraw(generator, logisticPlotter, iteractionsPlotter) {
+	if(showTime) {
+		console.time(`${generator.parameters.r}`);
+	}
+	
+	iteractionsPlotter.redraw(generator);
+	logisticPlotter.redraw(generator);
+	
+	if(showTime) {
+		console.timeEnd(`${generator.parameters.r}`);
+	}
+}
+
 function initPlotter(generator) {
 	let logisticPlotter = new LogisticPlotter();
 	let iteractionsPlotter = new IteractionsPlotter();
 	
 	generator.parameters.addObserver((evt) => {
-		iteractionsPlotter.redraw(generator);
-		logisticPlotter.redraw(generator);
+		redraw(generator, logisticPlotter, iteractionsPlotter);
 	});
 	
 	/*
@@ -205,6 +219,5 @@ $(document).ready(() => {
 	
 	centralize();
 	generator.generate();
-	iteractionsPlotter.redraw(generator)
-	logisticPlotter.redraw(generator)
+	redraw(generator, logisticPlotter, iteractionsPlotter);
 });
