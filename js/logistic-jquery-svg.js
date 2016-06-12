@@ -28,7 +28,9 @@ function initWidgets() {
 
 function initControls() {
 	
-	
+	function blur() { 
+		$(this).blur(); 
+	}
 	
 	const steps = [0.1, 0.01, 0.001, 0.0001, 0.00001];
 	
@@ -121,7 +123,7 @@ function initControls() {
 		.mousedown(handleMouse)
 		.keydown(handleKey)
 		.bind("contextmenu", () => false)
-		.data("valueName", valueName);
+		.data("valueName", valueName).focus(blur);
 	}
 	
 	function initIteractionsSpinner() {
@@ -129,7 +131,7 @@ function initControls() {
 			min : 0,
 			max : 2000,
 			step : 50,
-		}).data("valueName", "iteractions");
+		}).data("valueName", "iteractions").focus(blur);
 	}
 	
 	
@@ -163,7 +165,7 @@ function bindControls(generator) {
 	
 	let params = {
 		spin : refreshCharts,
-		change : refreshCharts,
+		change : refreshCharts
 	};
 	
 	$("#rValue").logisticspinner(params);
