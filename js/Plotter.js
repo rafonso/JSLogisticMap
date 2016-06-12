@@ -236,6 +236,12 @@ class IteractionsPlotter extends Plotter {
 	constructor() {
 		super('iteractions', { left: 0.06, top: 0.05, right: 0.98, bottom: 0.90, equalXY: false, yTicks: 0.25 });
 
+		$(this.chart._container).dblclick((evt) => this.emitSound());
+			this.timeByI = 10;
+	this.soundFactor = 10000;
+	
+
+
 		this.drawFunctions = {
 			getX: (series, i) => i + 1, 
 			getY: (series, i) => series[i], 
@@ -254,6 +260,8 @@ class IteractionsPlotter extends Plotter {
 	}
 	
 	prepareDraw(generator) {
+		this.values = generator.values;
+			
 		let ticksDistance = generator.values.length? (generator.values.length / 10): 1;
 		this.chart.plot.xAxis
 		.scale(0, Math.max(generator.values.length, 1))
@@ -265,5 +273,37 @@ class IteractionsPlotter extends Plotter {
 		return generator.values;
 	}
 	
+	emitSound() {
 	
+		let beep =(i, colorPrior) => {
+			if(colorPrior) {
+				$($(`#iteractionsChart g.foreground path`)[i - 1]).attr("stroke", colorPrior).attr("stroke-width", 1);
+			}
+			if(i < this.values.length) {
+				let color = $($(`#iteractionsChart g.foreground path`)[i]).attr("stroke");
+				$($(`#iteractionsChart g.foreground path`)[i]).attr("stroke", "black").attr("stroke-width", 3);
+				oscillator.frequency.value = this.values[i] * this.soundFactor;
+				setTimeout(() => beep(i + 1, color), this.timeByI);
+			} else {
+				oscillator.stop();
+				if(context.close) { // MS has not context.close
+					context.close();
+				} 
+				console.timeEnd("emitSound");
+			}
+		}
+	
+		let context = new AudioContext();
+        let oscillator = context.createOscillator();
+        oscillator.type = "square";
+		
+		let gain = context.createGain();
+        oscillator.connect(gain);
+        gain.connect(context.destination);
+
+		oscillator.start(0);
+		
+		console.time("emitSound");
+		beep(0);
+	}
 }
