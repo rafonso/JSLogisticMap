@@ -57,53 +57,57 @@ class Plotter {
 	*/
 	_adjustChart() {
 		
-		let formatAxis = (idAxis, axisType, pos, axis0Type, _0Type) => {
-			const axis = $(`#${this.chartId} g.${idAxis}`);
-			axis.appendTo(`#${this.chartId} g.background`);
+		let self = this;
+		
+		function formatAxis(idAxis, axisType, pos, axis0Type, _0Type) {
+			const axis = $(`#${self.chartId} g.${idAxis}`);
+			axis.appendTo(`#${self.chartId} g.background`);
 			
 			return axis.children("text")
 			.attr(axisType, pos)
-			.css("font-size", this.adjustParameters.fontSize + "px")
-			.each(this.adjustParameters.adjustLabels);
+			.css("font-size", self.adjustParameters.fontSize + "px")
+			.each(self.adjustParameters.adjustLabels);
 		}
 		
-		formatAxis("xAxisLabels", "y", this.adjustParameters.posXLabels, "x", "23");
+		formatAxis("xAxisLabels", "y", self.adjustParameters.posXLabels, "x", "23");
 		formatAxis("yAxisLabels", "x", 20, "y", "381").each(function () {
 			$(this).attr("y", parseInt($(this).attr("y")) + 5);
 		});
-		$(`#${this.chartId} g.background rect`).appendTo(`#${this.chartId} g.background`);
-		$(`#${this.chartId} path`).appendTo(`#${this.chartId} g.foreground`);
-		$(`#${this.chartId} g.xAxis, #${this.chartId} g.yAxis`).remove();
+		$(`#${self.chartId} g.background rect`).appendTo(`#${self.chartId} g.background`);
+		$(`#${self.chartId} path`).appendTo(`#${self.chartId} g.foreground`);
+		$(`#${self.chartId} g.xAxis, #${self.chartId} g.yAxis`).remove();
 	}
 	
 	_drawSerie(serie) {
 		
-		let calculateColor = (i) => {
+		let self = this;
+		
+		function calculateColor(i){
 			const stage = Math.floor(i / stageSize);
-			const color = this.heatTrace.get(stage);
+			const color = self.heatTrace.get(stage);
 			const pos = (i / stageSize);
 			
 			const r = Math.floor(color.r(pos));
 			const g = Math.floor(color.g(pos));
 			const b = Math.floor(color.b(pos));
-			const a = s.numberFormat(this.drawFunctions.alpha(serie, i), 3); 
+			const a = s.numberFormat(self.drawFunctions.alpha(serie, i), 3); 
 			
 			return `rgba(${r}, ${g}, ${b}, ${a})`;
 		}
 		
-		let plot = (i) => {
-			const path = this.chart.createPath();
-			const plot = this.chart.plot;
+		function plot(i) {
+			const path = self.chart.createPath();
+			const plot = self.chart.plot;
 			const color = calculateColor(i);
 			
-			path.moveTo(plot.xToChart(this.drawFunctions.getX(serie, i-1)), plot.yToChart(this.drawFunctions.getY(serie, i-1)));
-			path.line(plot.xToChart(this.drawFunctions.getX(serie, i)), plot.yToChart(this.drawFunctions.getY(serie, i)));
-			this.chart.path(this.foreground, path, {
-				id : `${this.id}${i}`,
+			path.moveTo(plot.xToChart(self.drawFunctions.getX(serie, i-1)), plot.yToChart(self.drawFunctions.getY(serie, i-1)));
+			path.line(plot.xToChart(self.drawFunctions.getX(serie, i)), plot.yToChart(self.drawFunctions.getY(serie, i)));
+			self.chart.path(self.foreground, path, {
+				id : `${self.id}${i}`,
 				fill : 'none',
 				stroke : color,
 				strokeWidth : 1,
-				class : this.id
+				class : self.id
 			});
 		}
 		
@@ -151,7 +155,7 @@ class LogisticPlotter extends Plotter {
 				$(element).text($.number((1 + index) / 10, 1));
 			}
 		};
-
+		
 		this.chart.plot.xAxis.scale(0.0, 1.0).ticks(0.1, 0, 0).title("").end()
 		.addFunction("linear", (x) =>  x, [0, 1], 1, "GoldenRod", 2);
 	}
@@ -235,13 +239,11 @@ class IteractionsPlotter extends Plotter {
 	
 	constructor() {
 		super('iteractions', { left: 0.06, top: 0.05, right: 0.98, bottom: 0.90, equalXY: false, yTicks: 0.25 });
-
+		
 		$(this.chart._container).dblclick((evt) => this.emitSound());
-			this.timeByI = 10;
-	this.soundFactor = 10000;
-	
-
-
+		this.timeByI = 10;
+		this.soundFactor = 10000;
+		
 		this.drawFunctions = {
 			getX: (series, i) => i + 1, 
 			getY: (series, i) => series[i], 
@@ -261,7 +263,7 @@ class IteractionsPlotter extends Plotter {
 	
 	prepareDraw(generator) {
 		this.values = generator.values;
-			
+		
 		let ticksDistance = generator.values.length? (generator.values.length / 10): 1;
 		this.chart.plot.xAxis
 		.scale(0, Math.max(generator.values.length, 1))
@@ -274,16 +276,16 @@ class IteractionsPlotter extends Plotter {
 	}
 	
 	emitSound() {
-	
-		let beep =(i, colorPrior) => {
+		
+		function beep(i, colorPrior) {
 			if(colorPrior) {
-				$($(`#iteractionsChart g.foreground path`)[i - 1]).attr("stroke", colorPrior).attr("stroke-width", 1);
+				$(path[i - 1]).attr("stroke", colorPrior).attr("stroke-width", 1);
 			}
-			if(i < this.values.length) {
-				let color = $($(`#iteractionsChart g.foreground path`)[i]).attr("stroke");
-				$($(`#iteractionsChart g.foreground path`)[i]).attr("stroke", "black").attr("stroke-width", 3);
-				oscillator.frequency.value = this.values[i] * this.soundFactor;
-				setTimeout(() => beep(i + 1, color), this.timeByI);
+			if(i < self.values.length) {
+				let color = $(path[i]).attr("stroke");
+				$(path[i]).attr("stroke", "black").attr("stroke-width", 3);
+				oscillator.frequency.value = self.values[i] * self.soundFactor;
+				setTimeout(() => beep(i + 1, color), self.timeByI);
 			} else {
 				oscillator.stop();
 				if(context.close) { // MS has not context.close
@@ -292,15 +294,18 @@ class IteractionsPlotter extends Plotter {
 				console.timeEnd("emitSound");
 			}
 		}
-	
+		
+		let self = this;
+		let path = $(`#iteractionsChart g.foreground path`); 
+
 		let context = new AudioContext();
-        let oscillator = context.createOscillator();
-        oscillator.type = "square";
+		let oscillator = context.createOscillator();
+		oscillator.type = "square";
 		
 		let gain = context.createGain();
-        oscillator.connect(gain);
-        gain.connect(context.destination);
-
+		oscillator.connect(gain);
+		gain.connect(context.destination);
+		
 		oscillator.start(0);
 		
 		console.time("emitSound");
