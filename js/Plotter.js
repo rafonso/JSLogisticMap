@@ -137,7 +137,9 @@ class LogisticPlotter extends Plotter {
 	constructor(magnitude) {
 		super('logistic', { left: 0.06, top: 0.02, right: 0.98, bottom: 1.00, equalXY: true, yTicks: 0.1 });
 		
+		this.fileName = "";
 		this.magnitude = magnitude;
+		$(this.chart._container).dblclick((evt) => this.saveChart());
 		
 		const a0 = 0.5;
 		const aMax = 0.95;
@@ -196,6 +198,8 @@ class LogisticPlotter extends Plotter {
 	
 	
 	prepareDraw(generator) {
+		this.fileName = `x0=${s.numberFormat(generator.parameters.x0, (this.magnitude['x0'] + 1))},r=${s.numberFormat(generator.parameters.r, (this.magnitude['r'] + 1))},it=${generator.parameters.iteractions}.svg`;
+	
 		this.drawParable(generator);
 		this.writeLegends(generator);
 	}
@@ -216,19 +220,8 @@ class LogisticPlotter extends Plotter {
 		return logistic;
 	}
 	
-	saveLogisticChart() {
-		let chart = $("#chart");
-		let filename = encodeURIComponent(`r=${generator.parameters.r},x0=${generator.parameters.x0},iteractions=${generator.parameters.iteractions}.png`);
-		let code = `<meta http-equiv="content-type" content="image/svg+xml"/>
-		<meta name="content-disposition" content="inline; filename=${filename}">
-		<link rel="stylesheet" type="text/css" href="css/style.css">
-		${chart.svg('get').toSVG()}`;
-		let uriContent = "data:image/svg+xml"; //," + filename;
-		
-		let chartWindow = window.open(filename, filename, `left=0,top=0,menubar=1,titlebar=0,width=${chart.width() + 50},height=${chart.height() +50},toolbar=0,scrollbars=0,status=0`);
-		chartWindow.document.write(code);
-		chartWindow.document.close();
-		chartWindow.focus();
+	saveChart() {
+		saveAs(new Blob([this.chart.toSVG()], {type:"application/svg+xml"}), this.fileName); 
 	}
 	
 }
