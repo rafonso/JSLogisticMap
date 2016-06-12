@@ -6,6 +6,12 @@ function centralize() {
 	});
 }
 
+let magnitude = toObservable({
+	steps: [0.1, 0.01, 0.001, 0.0001, 0.00001],
+	r: 0,
+	x0: 0
+});
+
 function initWidgets() {
 	$.widget("ui.logisticspinner", $.ui.spinner, {
 		_format : function (value) {
@@ -28,11 +34,11 @@ function initWidgets() {
 
 function initControls() {
 	
+	var regexValue = /^(.*)Value$/;
+	
 	function blur() { 
 		$(this).blur(); 
 	}
-	
-	const steps = [0.1, 0.01, 0.001, 0.0001, 0.00001];
 	
 	const actionsByKey = new Map([
 		['E', (hasShift) => {
@@ -71,20 +77,19 @@ function initControls() {
 		}]
 	]);
 	
-	function changeStep(id, decreaseStep) {
-		let stepPos = $("#" + id).logisticspinner("option", "stepPos");
+	function changeStep(spinnerId, decreaseStep) {
+		let id = regexValue.exec(spinnerId)[1];
 		let delta = 0;
-		if (!decreaseStep && (stepPos > 0)) {
+		if (!decreaseStep && (magnitude[id] > 0)) {
 			delta = -1;
-		} else if (decreaseStep && (stepPos < (steps.length - 1))) {
+		} else if (decreaseStep && (magnitude[id] < (magnitude.steps.length - 1))) {
 			delta = +1;
 		}
 		
 		if (!!delta) {
-			stepPos += delta;
-			$("#" + id)
-			.logisticspinner("option", "step", steps[stepPos])
-			.logisticspinner("option", "stepPos", stepPos);
+			magnitude[id] += delta;
+			$("#" + spinnerId)
+			.logisticspinner("option", "step", magnitude.steps[magnitude[id]]);
 		}
 	}
 	
@@ -113,8 +118,7 @@ function initControls() {
 		const spinnerOptions = {
 			min : 0.00,
 			max : max,
-			stepPos : 0,
-			step : steps[0],
+			step : magnitude.steps[0],
 			numberFormat : "n",
 		};
 		
@@ -189,12 +193,15 @@ function redraw(generator, logisticPlotter, iteractionsPlotter) {
 }
 
 function initPlotter(generator) {
-	let logisticPlotter = new LogisticPlotter();
+	let logisticPlotter = new LogisticPlotter(magnitude);
 	let iteractionsPlotter = new IteractionsPlotter();
 	
 	generator.parameters.addObserver((evt) => {
 		redraw(generator, logisticPlotter, iteractionsPlotter);
 	});
+	
+	magnitude.addObserver((evt) => logisticPlotter.magnitude = magnitude);
+
 	
 	/*
 	generator.values.addObserver((evt) => {
@@ -216,6 +223,7 @@ $(document).ready(() => {
 	let generator = initGenerator();
 	bindControls(generator);
 	let {iteractionsPlotter, logisticPlotter} = initPlotter(generator);
+	
 	
 	centralize();
 	generator.generate();

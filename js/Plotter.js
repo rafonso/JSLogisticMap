@@ -111,14 +111,17 @@ class Plotter {
 		
 		_.range(1, serie.length).forEach(plot);
 	}
-	
 	redraw(generator) {
+		let t0 = Date.now();
+		
 		this._clean();
 		this.prepareDraw(generator);
 		let serie = this.generateSerie(generator);
 		this._drawSerie(serie);
 		this.chart.plot.redraw();
 		this._adjustChart();
+		
+		return Date.now() - t0;
 	}
 	
 	_clean() {
@@ -129,8 +132,10 @@ class Plotter {
 
 class LogisticPlotter extends Plotter {
 	
-	constructor() {
+	constructor(magnitude) {
 		super('logistic', { left: 0.06, top: 0.02, right: 0.98, bottom: 1.00, equalXY: true, yTicks: 0.1 });
+		
+		this.magnitude = magnitude;
 		
 		const a0 = 0.5;
 		const aMax = 0.95;
@@ -178,13 +183,12 @@ class LogisticPlotter extends Plotter {
 		* The parable extremities are the points (0,0) and (1, 0).
 		*
 	*/
-	
 	writeLegends(generator) {
 		$("#legends").remove();
 		let g = this.chart.group("legends");
 		this.chart.text(g, 30, 20, `Iteractions = ${generator.parameters.iteractions}`); 
-		this.chart.text(g, 30, 32, `R = ${generator.parameters.r}`);
-		this.chart.text(g, 30, 44, `x0 = ${generator.parameters.x0}`);
+		this.chart.text(g, 30, 32, `R = ${s.numberFormat(generator.parameters.r, (this.magnitude['r'] + 1))}`);
+		this.chart.text(g, 30, 44, `x0 = ${s.numberFormat(generator.parameters.x0, (this.magnitude['x0'] + 1))}`);
 		$("#chart .foreground").prepend($("#legends"));
 	}
 	
