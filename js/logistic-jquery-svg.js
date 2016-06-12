@@ -24,10 +24,14 @@ function initWidgets() {
 	*/
 	$.extend($.svg._extensions[0][1].prototype, {
 		xToChart : function (x) {
-			return (x - this.xAxis._scale.min) * this._getScales()[0] + this._getDims()[this.X];
+			return s.numberFormat(
+				(x - this.xAxis._scale.min) * this._getScales()[0] + this._getDims()[this.X], 
+				1);
 		},
 		yToChart : function (y) {
-			return this._getDims()[this.H] - ((y - this.yAxis._scale.min) * this._getScales()[1]) + this._getDims()[this.Y];
+			return s.numberFormat(
+				this._getDims()[this.H] - ((y - this.yAxis._scale.min) * this._getScales()[1]) + this._getDims()[this.Y], 
+				1);
 		}
 	});
 }
