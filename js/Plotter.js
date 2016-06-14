@@ -123,7 +123,7 @@ class Plotter {
 		this.chart.plot.redraw();
 		this._adjustChart();
 		
-		return Date.now() - t0;
+		if(DEBUG) console.log('\t', this.id, (Date.now() - t0));
 	}
 	
 	_clean() {

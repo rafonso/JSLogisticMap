@@ -1,5 +1,7 @@
 "use strict";
 
+const DEBUG = true;
+
 let magnitude = toObservable({
 	steps: [0.1, 0.01, 0.001, 0.0001, 0.00001],
 	r: 0,
@@ -227,28 +229,13 @@ function bindControls(generator) {
 	$("#iteractionsValue").spinner(params);
 }
 
-var showTime = false;
-
-function redraw(generator, logisticPlotter, iteractionsPlotter) {
-	if(showTime) {
-		console.time(`${generator.parameters.r}`);
-	}
-	
-	iteractionsPlotter.redraw(generator);
-	logisticPlotter.redraw(generator);
-	
-	if(showTime) {
-		console.timeEnd(`${generator.parameters.r}`);
-	}
-}
-
 function initPlotter(generator) {
 	let logisticPlotter = new LogisticPlotter(magnitude);
 	let iteractionsPlotter = new IteractionsPlotter();
+
 	
-	generator.parameters.addObserver((evt) => {
-		redraw(generator, logisticPlotter, iteractionsPlotter);
-	});
+	generator.addListener({class: logisticPlotter, method: "redraw"});
+	generator.addListener({class: iteractionsPlotter, method: "redraw"});
 	
 	magnitude.addObserver((evt) => logisticPlotter.magnitude = magnitude);
 	callSound = () => iteractionsPlotter.emitSound();
@@ -275,5 +262,4 @@ $(document).ready(() => {
 	
 	centralize();
 	generator.generate();
-	redraw(generator, logisticPlotter, iteractionsPlotter);
 });

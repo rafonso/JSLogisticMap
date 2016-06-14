@@ -30,6 +30,9 @@ function toObservable(obj) {
 		removeObserver(f) {
 			let fIndex = observers.findIndex((o) => (o === f));
 			observers.splice(fIndex, 1);
+		},
+		toString() {
+			return obj.toString();
 		}
 	});
 }
