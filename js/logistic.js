@@ -1,16 +1,31 @@
 "use strict";
 
-function centralize() {
-	$("#main").position({
-		of : "body"
-	});
-}
-
 let magnitude = toObservable({
 	steps: [0.1, 0.01, 0.001, 0.0001, 0.00001],
 	r: 0,
 	x0: 0
 });
+
+let keys = {
+	r: {
+		title: "R",
+		increment: 'T',
+		decrement: 'E'
+	},
+	x0: {
+		title: "x0",
+		increment: 'C',
+		decrement: 'Z'
+	},
+	iteractions: {
+		title: "Iteractions",
+		increment: 'O',
+		decrement: 'U'
+	},
+}
+
+var callSound = () => (console.log("callSound"));
+var saveLogistic = () => (console.log("saveLogistic"));
 
 function initWidgets() {
 	$.widget("ui.logisticspinner", $.ui.spinner, {
@@ -25,13 +40,13 @@ function initWidgets() {
 	$.extend($.svg._extensions[0][1].prototype, {
 		xToChart : function (x) {
 			return s.numberFormat(
-				(x - this.xAxis._scale.min) * this._getScales()[0] + this._getDims()[this.X], 
-				1);
+			(x - this.xAxis._scale.min) * this._getScales()[0] + this._getDims()[this.X], 
+			1);
 		},
 		yToChart : function (y) {
 			return s.numberFormat(
-				this._getDims()[this.H] - ((y - this.yAxis._scale.min) * this._getScales()[1]) + this._getDims()[this.Y], 
-				1);
+			this._getDims()[this.H] - ((y - this.yAxis._scale.min) * this._getScales()[1]) + this._getDims()[this.Y], 
+			1);
 		}
 	});
 }
@@ -45,55 +60,82 @@ function initControls() {
 	}
 	
 	const actionsByKey = new Map([
-		['E', (hasShift) => {
+		[keys.r.decrement, (hasShift) => {
 			if(hasShift) {
 				changeStep("rValue", false);
-			} else {
+				} else {
 				$('#rValue').logisticspinner( "stepDown" );
 			}
 		}],
-		['T', (hasShift) => {
+		[keys.r.increment, (hasShift) => {
 			if(hasShift) {
 				changeStep("rValue", true);
-			} else {
+				} else {
 				$('#rValue').logisticspinner( "stepUp" );
 			}
 		}],
-		['U', (hasShift) => {
+		[keys.iteractions.decrement, (hasShift) => {
 			$('#iteractionsValue').spinner( "stepDown" );
 		}],
-		['O', (hasShift) => {
+		[keys.iteractions.increment, (hasShift) => {
 			$('#iteractionsValue').spinner( "stepUp" );
 		}],
-		['Z', (hasShift) => {
+		[keys.x0.decrement, (hasShift) => {
 			if(hasShift) {
 				changeStep("x0Value", false);
-			} else {
+				} else {
 				$('#x0Value').logisticspinner( "stepDown" );
 			}
 		}],
-		['C', (hasShift) => {
+		[keys.x0.increment, (hasShift) => {
 			if(hasShift) {
 				changeStep("x0Value", true);
 				} else {
 				$('#x0Value').logisticspinner( "stepUp" );
 			}
-		}]
+		}], 
+		['S', (hasShift) => {
+			if(hasShift) {
+				callSound();
+			}
+		}], 
+		['L', (hasShift) => {
+			if(hasShift) {
+				saveLogistic();
+			}
+		}], 
 	]);
 	
+	function changeTitle(id, currentMagnitude) {
+		let key = keys[id];
+		let title = `Changes ${key.title} value. Press ${key.increment} to increase its value. Press ${key.decrement} to decrease its value.`;
+		if(currentMagnitude > 0) {
+			title += ` Type SHIFT + ${key.decrement} to increase its step to ${magnitude.steps[currentMagnitude - 1]}.`
+		}
+		if(currentMagnitude < (magnitude.steps.length - 1)) {
+			title += ` Type SHIFT + ${key.increment} to decrement its step to ${magnitude.steps[currentMagnitude + 1]}.`
+		}
+		
+		$(`#${id}Value`).attr("title", title);
+	}
+	
 	function changeStep(spinnerId, decreaseStep) {
+		
 		let id = regexValue.exec(spinnerId)[1];
 		let delta = 0;
-		if (!decreaseStep && (magnitude[id] > 0)) {
+		let currentMagnitude = magnitude[id];
+		
+		if (!decreaseStep && (currentMagnitude > 0)) {
 			delta = -1;
-		} else if (decreaseStep && (magnitude[id] < (magnitude.steps.length - 1))) {
+		} else if (decreaseStep && (currentMagnitude < (magnitude.steps.length - 1))) {
 			delta = +1;
 		}
 		
 		if (!!delta) {
-			magnitude[id] += delta;
+			currentMagnitude = magnitude[id] += delta;
 			$("#" + spinnerId)
-			.logisticspinner("option", "step", magnitude.steps[magnitude[id]]);
+			.logisticspinner("option", "step", magnitude.steps[currentMagnitude]);
+			changeTitle(id, currentMagnitude);
 		}
 	}
 	
@@ -106,7 +148,7 @@ function initControls() {
 			
 			if (incrementEvent(event)) { 
 				changeStep(event.target.id, false);
-				} else if (decrementEvent(event)) { 
+			} else if (decrementEvent(event)) { 
 				changeStep(event.target.id, true);
 			}
 		}
@@ -131,7 +173,8 @@ function initControls() {
 		.mousedown(handleMouse)
 		.keydown(handleKey)
 		.bind("contextmenu", () => false)
-		.data("valueName", valueName).focus(blur);
+		.data("valueName", valueName)
+		.focus(blur);
 	}
 	
 	function initIteractionsSpinner() {
@@ -142,10 +185,13 @@ function initControls() {
 		}).data("valueName", "iteractions").focus(blur);
 	}
 	
-	
 	initFloatSpinner("rValue", "r", 4.0).focus();
 	initFloatSpinner("x0Value", "x0", 1.0);
 	initIteractionsSpinner();
+	
+	changeTitle("r", 0);
+	changeTitle("x0", 0);
+	changeTitle("iteractions", NaN);
 	
 	$(window).keypress(function(event) {
 		let key = event.key.toUpperCase();
@@ -205,21 +251,20 @@ function initPlotter(generator) {
 	});
 	
 	magnitude.addObserver((evt) => logisticPlotter.magnitude = magnitude);
-
-	
-	/*
-	generator.values.addObserver((evt) => {
-		if(evt.property === "length" && (evt.newVaue === 0)) {
-			plotter.clean();
-		} 
-	});
-	*/
-	
+	callSound = () => iteractionsPlotter.emitSound();
+	saveLogistic = () => logisticPlotter.saveChart();
 	
 	return {iteractionsPlotter, logisticPlotter};
 }
 
 $(document).ready(() => {
+	
+	function centralize() {
+		$("#main").position({
+			of : "body"
+		});
+	}
+	
 	$(window).resize(centralize);
 	
 	initWidgets();
@@ -227,7 +272,6 @@ $(document).ready(() => {
 	let generator = initGenerator();
 	bindControls(generator);
 	let {iteractionsPlotter, logisticPlotter} = initPlotter(generator);
-	
 	
 	centralize();
 	generator.generate();
