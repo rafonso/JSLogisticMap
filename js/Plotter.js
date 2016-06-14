@@ -296,6 +296,7 @@ class IteractionsPlotter extends Plotter {
 		oscillator.type = "square";
 		
 		let gain = context.createGain();
+		gain.gain.value = 0.2;
 		oscillator.connect(gain);
 		gain.connect(context.destination);
 		
