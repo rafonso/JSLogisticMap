@@ -111,7 +111,9 @@ class Plotter {
 		let self = this;
 		const stageSize = parseInt(serie.length / 5);
 		
-		_.range(1, serie.length).forEach(plot);
+		for(var i = 1; i < serie.length; i ++) {
+			plot(i);
+		}
 	}
 	redraw(generator) {
 		let t0 = Date.now();
@@ -205,16 +207,16 @@ class LogisticPlotter extends Plotter {
 	}
 	
 	generateSerie(generator)  {
-		let logistic = [];
+		let logistic = new Array(2 * generator.values.length - 2);
 		let x = generator.values[0];
 		let y = 0;
-		logistic.push({x, y});
-		_.range(1, generator.values.length).forEach((it) => {
-			y = generator.values[it];
-			logistic.push({x, y : x});
-			logistic.push({x, y});
+		logistic[0] = {x, y};
+		for(var i = 1; i < generator.values.length; i ++) {
+			y = generator.values[i];
+			logistic[2 * i - 1] = {x, y : x};
+			logistic[2 * i] = {x, y};
 			x = y;
-		});
+		}
 		logistic.splice(1, 1); // workaround
 		
 		return logistic;
