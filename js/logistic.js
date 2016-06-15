@@ -196,7 +196,8 @@ function initControls() {
 	changeTitle("iteractions", NaN);
 	
 	$(window).keypress(function(event) {
-		let key = event.key.toUpperCase();
+		// Hack to work in older versions of Chrome
+		let key = String.fromCharCode(event.charCode).toUpperCase();
 		if(actionsByKey.has(key)) {
 			actionsByKey.get(key)(event.shiftKey);
 		}});
@@ -245,21 +246,11 @@ function initPlotter(generator) {
 }
 
 $(document).ready(() => {
-	
-	function centralize() {
-		$("#main").position({
-			of : "body"
-		});
-	}
-	
-	$(window).resize(centralize);
-	
 	initWidgets();
 	initControls();
 	let generator = initGenerator();
 	bindControls(generator);
 	let {iteractionsPlotter, logisticPlotter} = initPlotter(generator);
 	
-	centralize();
 	generator.generate();
 });

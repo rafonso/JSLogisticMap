@@ -116,7 +116,7 @@ class Plotter {
 		}
 	}
 	redraw(generator) {
-		let t0 = Date.now();
+		if(DEBUG) var t0 = Date.now();
 		
 		this._clean();
 		this.prepareDraw(generator);
@@ -200,7 +200,7 @@ class LogisticPlotter extends Plotter {
 	
 	
 	prepareDraw(generator) {
-		this.fileName = `x0=${s.numberFormat(generator.parameters.x0, (this.magnitude['x0'] + 1))},r=${s.numberFormat(generator.parameters.r, (this.magnitude['r'] + 1))},it=${generator.parameters.iteractions}.svg`;
+		this.fileName = `x0=${s.numberFormat(generator.parameters.x0, (this.magnitude['x0'] + 1))},r=${s.numberFormat(generator.parameters.r, (this.magnitude['r'] + 1))},it=${generator.parameters.iteractions}.png`;
 	
 		this.drawParable(generator);
 		this.writeLegends(generator);
@@ -223,7 +223,7 @@ class LogisticPlotter extends Plotter {
 	}
 	
 	saveChart() {
-		saveAs(new Blob([this.chart.toSVG()], {type:"application/svg+xml"}), this.fileName); 
+		saveSvgAsPng($(`#${this.chartId}`).children()[0], this.fileName);
 	}
 	
 }

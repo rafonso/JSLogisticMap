@@ -4,7 +4,11 @@ body {
 }
 
 #main {
+	/* Always centralized in the window. */
     width: 400px;
+	position:absolute;
+	left:50%;
+	margin-left: -200px;
 }
 
 #main > * {
