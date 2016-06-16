@@ -272,6 +272,7 @@ class IteractionsPlotter extends Plotter {
 	
 	emitSound() {
 		
+		// Performance note: The bottleneck here is when it was change the color (stroke). 
 		function beep(i, colorPrior){
 			if(colorPrior) {
 				$(paths[i - 1]).attr("stroke", colorPrior).attr("stroke-width", 1);
@@ -286,7 +287,7 @@ class IteractionsPlotter extends Plotter {
 				if(context.close) { // MS has not context.close
 					context.close();
 				} 
-				console.timeEnd("emitSound");
+				if(DEBUG) console.timeEnd(`emitSound ${self.values.length}`);
 			}
 		}
 		
@@ -304,7 +305,8 @@ class IteractionsPlotter extends Plotter {
 		
 		oscillator.start(0);
 		
-		console.time("emitSound");
+		if(DEBUG) console.time(`emitSound ${this.values.length}`);
+
 		beep(0);
 	}
 }
