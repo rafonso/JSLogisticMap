@@ -9,13 +9,14 @@ class Plotter {
 			.equalXY(initParams.equalXY)
 			.legend.show(false).end()
 			.gridlines('lightgrey', 'lightgrey')
-			.yAxis.scale(0.0, 1.0).ticks(initParams.yTicks, 0, 0).title("").end();
+			.yAxis.scale(0.0, initParams.maxY).ticks(initParams.yTicks, 0, 0).title("").end();
 		}
 		
 		this.id = id;
 		this.chartId = `${id}Chart`;
 		this.chart = $(`#${this.chartId}`).svg(initChart).svg("get");
 		this.foreground = $(`#${this.chartId} g.foreground`).svg("get");
+		
 		
 		this.heatTrace = new Map([
 			[0, { // From Indigo [rgb( 75,   0, 130)] to Blue [rgb(  0,   0, 255)]
@@ -75,6 +76,8 @@ class Plotter {
 		$(`#${this.chartId} g.background rect`).appendTo(`#${this.chartId} g.background`);
 		$(`#${this.chartId} path`).appendTo(`#${this.chartId} g.foreground`);
 		$(`#${this.chartId} g.xAxis, #${this.chartId} g.yAxis`).remove();
+		// Clean Axis labels
+		$(`#${this.chartId} svg svg > text`).remove();
 	}
 	
 	_drawSerie(serie) {
@@ -137,7 +140,7 @@ class Plotter {
 class LogisticPlotter extends Plotter {
 	
 	constructor(magnitude) {
-		super('logistic', { left: 0.06, top: 0.02, right: 0.98, bottom: 1.00, equalXY: true, yTicks: 0.1 });
+		super('logistic', { left: 0.06, top: 0.02, right: 0.98, bottom: 1.00, equalXY: true, maxY: 1.0, yTicks: 0.1 });
 		
 		this.fileName = "";
 		this.magnitude = magnitude;
@@ -201,7 +204,7 @@ class LogisticPlotter extends Plotter {
 	
 	prepareDraw(generator) {
 		this.fileName = `x0=${s.numberFormat(generator.parameters.x0, (this.magnitude['x0'] + 1))},r=${s.numberFormat(generator.parameters.r, (this.magnitude['r'] + 1))},it=${generator.parameters.iteractions}.png`;
-	
+		
 		this.drawParable(generator);
 		this.writeLegends(generator);
 	}
@@ -231,7 +234,7 @@ class LogisticPlotter extends Plotter {
 class IteractionsPlotter extends Plotter {
 	
 	constructor() {
-		super('iteractions', { left: 0.06, top: 0.05, right: 0.98, bottom: 0.90, equalXY: false, yTicks: 0.25 });
+		super('iteractions', { left: 0.06, top: 0.05, right: 0.98, bottom: 0.90, equalXY: false, maxY: 1.0, yTicks: 0.25 });
 		
 		$(this.chart._container).dblclick((evt) => this.emitSound());
 		this.timeByI = 10;
@@ -306,7 +309,27 @@ class IteractionsPlotter extends Plotter {
 		oscillator.start(0);
 		
 		if(DEBUG) console.time(`emitSound ${this.values.length}`);
-
+		
 		beep(0);
 	}
+}
+
+class BifurcationPlotter extends Plotter {	
+	
+	constructor() {
+		super('bifurcation', { left: 0.06, top: 0.02, right: 0.98, bottom: 0.96, equalXY: false, maxY: 4.0, yTicks: 0.1 });
+		// invert y-Axis: https://forum.jquery.com/topic/jquery-svg-how-to-flip-object
+		//		console.log($("#" + this.chartId, this.chart.root()));
+		
+		this.adjustParameters = {
+			posXLabels: 520, 
+			fontSize: 11, 
+			adjustLabels: (index, element) => {
+				$(element).text($.number((1 + index) / 10, 1));
+			}
+		};
+		
+		super._adjustChart();
+	}
+	
 }

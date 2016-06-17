@@ -3,7 +3,7 @@
     
     <head>
         <meta charset="utf-8">
-        <title>JS Logistic Map</title>
+        <title>Bifurcation</title>
         <link rel="stylesheet" type="text/css" href="css/style.css">
         <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.css">
         <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.2/jquery-ui.structure.min.css">
@@ -24,21 +24,22 @@
         <script type="text/javascript" src="./js/Observers.js"></script>
 		<script type="text/javascript" src="./js/LogisticParameters.js"></script>
 		<script type="text/javascript" src="./js/LogisticGenerator.js"></script>
-        <script type="text/javascript" src="./js/Logistic.js"></script>
+        <script type="text/javascript" src="./js/complete.js"></script>
     </head>
     
     <body>
-        <div id="main" class="logistic">
-            <h1>JS Logistic Map</h1>
-            <div id="plots">
-                <div id="logisticChart" class="coweb_chart" title="Logistic Map. Click twice to export as SVG."></div>
-                <div id="iteractionsChart" class="coweb_chart" title="Iteractions Chart. Click twice to hear..."></div>
-            </div>
+        <div id="main" class="complete">
+            <h1>Bifurcation</h1>
+            <table id="plots">
+				<tr>
+					<td rowspan="2" id="bifurcationChart" class="coweb_chart" title=""></td>
+					<td id="logisticChart" class="coweb_chart" title="Logistic Map. Click twice to export as SVG."></td>
+				</tr>
+				<tr>
+					<td id="iteractionsChart" class="coweb_chart" title="Iteractions Chart. Click twice to hear..."></td>
+				</tr>
+            </table>
             <div id="controls">
-                <div id="rowR" class="row_controls">
-                    <label for="rValue">R = </label>
-                    <input id="rValue" name="rValue" value="1.00" class="spinner">
-                </div>
                 <div id="rowX0" class="row_controls">
                     <label for="x0Value">x<sub>0</sub> = </label>
                     <input id="x0Value" name="x0Value" value="0.50" class="spinner">
@@ -46,6 +47,11 @@
                 <div id="rowIteractions" class="row_controls">
                     <label for="iteractionsValue">Iter = </label>
                     <input id="iteractionsValue" name="iteractionsValue" value="100" class="spinner">
+                </div>
+                <div id="rowR" class="row_controls">
+                    <label for="skipValue">Skip first </label>
+                    <input id="skipValue" name="rValue" value="0" class="spinner">
+                    <label>%</label>
                 </div>
             </div>
         </div>

@@ -5,10 +5,16 @@ body {
 
 #main {
 	/* Always centralized in the window. */
-    width: 400px;
-	position:absolute;
+	position: absolute;
 	left:50%;
+}
+
+#main.logistic {
 	margin-left: -200px;
+}
+
+#main.complete {
+	margin-left: -450px;
 }
 
 #main > * {
@@ -22,12 +28,6 @@ body {
 }
 
 #plots {
-    /*
-        display: flex;
-        display: -ms-inline-flexbox;
-        border-collapse: collapse;
-    */
-    /*width: 100%;*/
 }
 
 .coweb_chart {
@@ -41,17 +41,46 @@ body {
 	font-family: monospace;
 }
 
-#jqPlotChart , #logisticChart{
-    height:400px;
+#bifurcationChart {
+	/*
+	height: 510px;
+	top: 0;
+	left: 0;
+	*/
+	border-color: red;
+	margin-right: 10px;
+	display: table-cell;
+}
+
+#logistic_iteractions {
+	display: table-cell;
+}
+
+#logisticChart {
+	display: table-cell;
+    height: 400px;
+	top: 0;
 }
 
 #iteractionsChart {
     height:100px;
     margin-top: 10px;
+	bottom: 0;
 }
+
+#main.complete  #logisticChart, #main.complete #iteractionsChart {
+	/*
+	right: 0;
+	left: 400px;
+	*/
+	margin-left: 10px;
+}
+
+
 
 #controls {
     display: table;
+	width: 100%;
 }
 
 #controls .row_controls {
@@ -79,6 +108,6 @@ body {
     font-size: 16px !important;
 }
 
-#iteractionsValue {
+#iteractionsValue , #skipValue {
     text-align: right;
 }
