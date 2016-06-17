@@ -80,25 +80,24 @@ class Plotter {
 	_drawSerie(serie) {
 		
 		function calculateColor(i) {
-			const stage = Math.floor(i / stageSize);
-			const color = self.heatTrace.get(stage);
 			const pos = (i / stageSize);
+			const stage = pos | 0;
+			const color = self.heatTrace.get(stage);
 			
-			const r = Math.floor(color.r(pos));
-			const g = Math.floor(color.g(pos));
-			const b = Math.floor(color.b(pos));
-			const a = s.numberFormat(self.drawFunctions.alpha(serie, i), 3); 
+			const r = color.r(pos) | 0;
+			const g = color.g(pos) | 0;
+			const b = color.b(pos) | 0;
+			const a = self.drawFunctions.alpha(serie, i); 
 			
 			return `rgba(${r}, ${g}, ${b}, ${a})`;
 		}
 		
 		function plot(i) {
 			const path = self.chart.createPath();
-			const plot = self.chart.plot;
 			const color = calculateColor(i);
 			
-			path.moveTo(plot.xToChart(self.drawFunctions.getX(serie, i-1)), plot.yToChart(self.drawFunctions.getY(serie, i-1)));
-			path.line(plot.xToChart(self.drawFunctions.getX(serie, i)), plot.yToChart(self.drawFunctions.getY(serie, i)));
+			path.moveTo(plt.xToChart(self.drawFunctions.getX(serie, i-1)), plt.yToChart(self.drawFunctions.getY(serie, i-1)));
+			path.line(plt.xToChart(self.drawFunctions.getX(serie, i)), plt.yToChart(self.drawFunctions.getY(serie, i)));
 			self.chart.path(self.foreground, path, {
 				id : `${self.id}${i}`,
 				fill : 'none',
@@ -109,6 +108,7 @@ class Plotter {
 		}
 		
 		let self = this;
+		const plt = self.chart.plot;
 		const stageSize = parseInt(serie.length / 5);
 		
 		for(var i = 1; i < serie.length; i ++) {
@@ -148,7 +148,7 @@ class LogisticPlotter extends Plotter {
 		this.drawFunctions = {
 			getX: (series, i) => series[i].x, 
 			getY: (series, i) => series[i].y, 
-			alpha: (series, i) => a0 + (aMax - a0) * (i / series.length)
+			alpha: (series, i) => ((1000 * (a0 + (aMax - a0) * (i / series.length))) | 0) / 1000
 		};
 		this.adjustParameters = {
 			posXLabels: 395, 

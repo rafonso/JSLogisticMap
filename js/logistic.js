@@ -181,7 +181,7 @@ function initControls() {
 	
 	function initIteractionsSpinner() {
 		$("#iteractionsValue").spinner({
-			min : 0,
+			min : 50,
 			max : 2000,
 			step : 50,
 		}).data("valueName", "iteractions").focus(blur);
