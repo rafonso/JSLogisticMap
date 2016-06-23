@@ -10,9 +10,9 @@ keys.skip = {
 };
 
 actionsByKey.set(keys.skip.decrement, (hasShift) => {
-	$('#skipValue').logisticspinner("stepDown");
+	$('#skipValue').spinner("stepDown");
 }).set(keys.skip.increment, (hasShift) => {
-	$('#skipValue').logisticspinner("stepUp");
+	$('#skipValue').spinner("stepUp");
 });
 
 function initControls() {
@@ -46,7 +46,7 @@ function bindControls(generator) {
 		change: refreshCharts
 	};
 
-	$("#skipValue").logisticspinner(params);
+	$("#skipValue").spinner(params);
 	$("#x0Value").logisticspinner(params);
 	$("#iteractionsValue").spinner(params);
 }
