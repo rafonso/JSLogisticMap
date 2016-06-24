@@ -16,7 +16,11 @@ class Plotter {
 		this.chartId = `${id}Chart`;
 		this.chart = $(`#${this.chartId}`).svg(initChart).svg("get");
 		this.foreground = $(`#${this.chartId} g.foreground`).svg("get");
+		var plot = this.chart.plot
 
+		plot.bind("click", function(event) {
+			console.log(event.offsetX, plot.chartToX(event.offsetX), event.offsetY, plot.chartToY(event.offsetY));
+		})
 
 		this.heatTrace = new Map([
 			[0, { // From Indigo [rgb( 75,   0, 130)] to Blue [rgb(  0,   0, 255)]

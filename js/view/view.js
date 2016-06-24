@@ -90,15 +90,34 @@ function initWidgets() {
 	*/
 	$.extend($.svg._extensions[0][1].prototype, {
 		xToChart: function (x) {
-			return s.numberFormat(
-				(x - this.xAxis._scale.min) * this._getScales()[0] + this._getDims()[this.X],
-				1);
+			return (x - this.xAxis._scale.min) * this._getScales()[0] + this._getDims()[this.X];
 		},
 		yToChart: function (y) {
-			return s.numberFormat(
-				this._getDims()[this.H] - ((y - this.yAxis._scale.min) * this._getScales()[1]) + this._getDims()[this.Y],
-				1);
+			return this._getDims()[this.H] - ((y - this.yAxis._scale.min) * this._getScales()[1]) + this._getDims()[this.Y];
+		},
+		chartToX: function (xChart) {
+			return (xChart - this._getDims()[this.X]) / this._getScales()[0] + this.xAxis._scale.min;
+		},
+		chartToY: function (yChart) {
+			return (this._getDims()[this.H] + this._getDims()[this.Y] - yChart) / this._getScales()[1] + this.yAxis._scale.min;
+		},
+		/**
+		 * Bind a event to the plot.
+		 * 
+		 * @param {string} eventType - A string containing one or more DOM event types, such as "click" or "submit," or custom event names.
+		 * @param {any} eventData - object containing data that will be passed to the event handler.
+		 * @param {eventHandler} handler - A function to execute each time the event is triggered.
+		 * @see {@link http://api.jquery.com/bind/|Jquery´s bind()}
+		 */
+		bind: function (eventType, eventData, handler) {
+			$(this._wrapper._container).bind(eventType, eventData, handler);
+			return this;
 		}
+		/**
+		 * @callback eventHandler 
+		 * @param {Event} A Jquery Event Object
+		 * @see {@link http://api.jquery.com/Types/#Event}
+		 */
 	});
 }
 
@@ -219,9 +238,9 @@ function initIntSpinner(id, valueName, min, max, step) {
 		max,
 		step,
 	})
-	.data("valueName", valueName)
-	.focus(blur)
-	.attr("title", getTitle(valueName, NaN));
+		.data("valueName", valueName)
+		.focus(blur)
+		.attr("title", getTitle(valueName, NaN));
 }
 
 $(window).keypress(function (event) {
