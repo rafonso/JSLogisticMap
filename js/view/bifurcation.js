@@ -68,7 +68,6 @@ function initPlotter(generator) {
 }
 
 $(document).ready(() => {
-	initWidgets();
 	initControls();
 	let generator = initGenerator();
 	bindControls(generator);
