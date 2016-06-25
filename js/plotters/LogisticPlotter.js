@@ -27,17 +27,16 @@ class LogisticPlotter extends Plotter {
 			}
 		};
 
-		this.chart.plot.xAxis.scale(0.0, 1.0).ticks(0.1, 0, 0).title("").end()
+		this.plot.xAxis.scale(0.0, 1.0).ticks(0.1, 0, 0).title("").end()
 			.addFunction("linear", (x) => x, [0, 1], 1, "GoldenRod", 2);
 	}
 
 	drawParable(generator) {
-		let plot = this.chart.plot;
-		let y0 = plot.yToChart(0);
-		let x0 = plot.xToChart(0);
-		let x1 = plot.xToChart(1);
-		let x_5 = plot.xToChart(0.5);
-		let y_5 = plot.yToChart(generator.parameters.r / 2);
+		let y0 = this.plot.yToChart(0);
+		let x0 = this.plot.xToChart(0);
+		let x1 = this.plot.xToChart(1);
+		let x_5 = this.plot.xToChart(0.5);
+		let y_5 = this.plot.yToChart(generator.parameters.r / 2);
 
 		let quadraticPath = this.chart.createPath();
 		quadraticPath

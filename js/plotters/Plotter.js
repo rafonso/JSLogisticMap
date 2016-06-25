@@ -15,13 +15,14 @@ class Plotter {
 		this.id = id;
 		this.chartId = `${id}Chart`;
 		this.chart = $(`#${this.chartId}`).svg(initChart).svg("get");
+		this.plot = this.chart.plot
 		this.foreground = $(`#${this.chartId} g.foreground`).svg("get");
-		var plot = this.chart.plot
 
-		plot.bind("click", function(event) {
+/*
+		this.plot.bind("click", function(event) {
 			console.log(event.offsetX, plot.chartToX(event.offsetX), event.offsetY, plot.chartToY(event.offsetY));
 		})
-
+*/
 		this.heatTrace = new Map([
 			[0, { // From Indigo [rgb( 75,   0, 130)] to Blue [rgb(  0,   0, 255)]
 				r: (pos) => (75 * (- pos + 1)),
@@ -99,12 +100,12 @@ class Plotter {
 			return `rgba(${r}, ${g}, ${b}, ${a})`;
 		}
 
-		function plot(i) {
+		function _plot(i) {
 			const path = self.chart.createPath();
 			const color = calculateColor(i);
 
-			path.moveTo(plt.xToChart(self.drawFunctions.getX(serie, i - 1)), plt.yToChart(self.drawFunctions.getY(serie, i - 1)));
-			path.line(plt.xToChart(self.drawFunctions.getX(serie, i)), plt.yToChart(self.drawFunctions.getY(serie, i)));
+			path.moveTo(self.plot.xToChart(self.drawFunctions.getX(serie, i - 1)), self.plot.yToChart(self.drawFunctions.getY(serie, i - 1)));
+			path.line(self.plot.xToChart(self.drawFunctions.getX(serie, i)), self.plot.yToChart(self.drawFunctions.getY(serie, i)));
 			self.chart.path(self.foreground, path, {
 				id: `${self.id}${i}`,
 				fill: 'none',
@@ -115,11 +116,10 @@ class Plotter {
 		}
 
 		let self = this;
-		const plt = self.chart.plot;
 		const stageSize = parseInt(serie.length / 5);
 
 		for (var i = 1; i < serie.length; i++) {
-			plot(i);
+			_plot(i);
 		}
 	}
 	redraw(generator) {
@@ -129,7 +129,7 @@ class Plotter {
 		this.prepareDraw(generator);
 		let serie = this.generateSerie(generator);
 		this._drawSerie(serie);
-		this.chart.plot.redraw();
+		this.plot.redraw();
 		this._adjustChart();
 
 		if (DEBUG) console.log('\t', this.id, (Date.now() - t0));

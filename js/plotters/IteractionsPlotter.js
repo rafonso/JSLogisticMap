@@ -30,7 +30,7 @@ class IteractionsPlotter extends Plotter {
 		this.values = generator.values;
 
 		let ticksDistance = generator.values.length ? (generator.values.length / 10) : 1;
-		this.chart.plot.xAxis
+		this.plot.xAxis
 			.scale(0, Math.max(generator.values.length, 1))
 			.ticks(ticksDistance, 0, 0)
 			.title("");
