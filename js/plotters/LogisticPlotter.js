@@ -58,12 +58,12 @@ class LogisticPlotter extends Plotter {
 		*
 	*/
 	writeLegends(generator) {
-		$("#legends").remove();
-		let g = this.chart.group("legends");
+		$("#logisticLegend").remove();
+		let g = this.chart.group("logisticLegend");
 		this.chart.text(g, 30, 20, `Iteractions = ${generator.parameters.iteractions}`);
 		this.chart.text(g, 30, 32, `R = ${s.numberFormat(generator.parameters.r, (this.magnitude['r'] + 1))}`);
 		this.chart.text(g, 30, 44, `x0 = ${s.numberFormat(generator.parameters.x0, (this.magnitude['x0'] + 1))}`);
-		$("#chart .foreground").prepend($("#legends"));
+		$("#chart .foreground").prepend($("#logisticLegend"));
 	}
 
 
