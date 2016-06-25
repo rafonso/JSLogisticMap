@@ -85,6 +85,26 @@ function initWidgets() {
 		}
 	});
 
+
+	$.extend($.svg._wrapperClass.prototype, {
+	/** Draw a point. Actually a circle with raidius 1.
+		@param cx {number} The x-coordinate for the centre of the circle.
+		@param cy {number} The y-coordinate for the centre of the circle.
+		@param [settings] {object} Additional settings for this node.
+		@param [parent] {SVGElement|jQuery} The parent node for the new node, or SVG root if not specified.
+		@return {SVGElement} The new circle node. */
+		point: function( cx, cy, settings, parent) {
+			return this.circle(parent, cx, cy, 1, settings);
+		},
+/*
+		circle: function( cx, cy, r, settings) {
+		var args = this._args(arguments, ['parent', 'cx', 'cy', 'r']);
+		return this._makeNode(args.parent, 'circle', $.extend(
+			{cx: args.cx, cy: args.cy, r: args.r}, args.settings || {}));
+	},
+	*/
+	});
+
 	/**
 		* Workaround to add functionality to SVGPlot.
 	*/
