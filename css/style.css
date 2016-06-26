@@ -13,7 +13,7 @@ body {
 	margin-left: -200px;
 }
 
-#main.complete {
+#main.bifurcation {
 	margin-left: -450px;
 }
 
@@ -68,7 +68,7 @@ body {
 	bottom: 0;
 }
 
-#main.complete  #logisticChart, #main.complete #iteractionsChart {
+#main.bifurcation  #logisticChart, #main.bifurcation #iteractionsChart {
 	/*
 	right: 0;
 	left: 400px;
@@ -81,11 +81,30 @@ body {
 #controls {
     display: table;
 	width: 100%;
+     white-space: nowrap;
 }
 
 #controls .row_controls {
     display: table-cell;
     width: 33%;
+    padding-right: 5px;
+    padding-left: 5px;
+}
+
+#controls .row_controls:first-of-type {
+    padding-left: 0px;
+}
+
+#controls .row_controls:last-of-type {
+    padding-right: 0px;
+}
+
+#main.bifurcation #controls .row_controls {
+    width: 25%;
+}
+
+#main.bifurcation #controls #iteractionsValue, #main.bifurcation #controls #drawValue, #main.bifurcation #controls #skipValue {
+    width: 30px;
 }
 
 #controls .row_controls > *{
@@ -108,6 +127,6 @@ body {
     font-size: 16px !important;
 }
 
-#iteractionsValue , #skipValue {
+#iteractionsValue , #drawValue, #skipValue {
     text-align: right;
 }

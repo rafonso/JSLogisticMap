@@ -15,6 +15,7 @@
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/underscore.string/3.3.4/underscore.string.min.js"></script>
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2014-11-29/FileSaver.js"></script>
+        <script type="text/javascript" src="https://cdn.rawgit.com/andywer/threads.js/0.6.1/dist/threads.browser.min.js"></script>
         <script type="text/javascript" src="./js/jquery/jquery.number.min.js"></script>
         <script type="text/javascript" src="./js/jquery.svg/jquery.svg.js"></script>
         <script type="text/javascript" src="./js/jquery.svg/jquery.svgplot.js"></script>
@@ -33,15 +34,17 @@
     </head>
 
     <body>
-        <div id="main" class="complete">
+	    <!-- TODO: remove width -->
+        <div id="main" class="bifurcation" style="margin-left: 0; left: 20px;">
             <h1>Bifurcation</h1>
             <table id="plots">
                 <tr>
                     <td rowspan="2" id="bifurcationChart" class="coweb_chart" title=""></td>
-                    <td id="logisticChart" class="coweb_chart" title="Logistic Map. Click twice to export as SVG."></td>
+                    <!-- TODO: remove width -->
+                    <td id="logisticChart" class="coweb_chart" title="Logistic Map. Click twice to export as SVG." style="width: 10px"></td>
                 </tr>
                 <tr>
-                    <td id="iteractionsChart" class="coweb_chart" title="Iteractions Chart. Click twice to hear..."></td>
+                    <td id="iteractionsChart" class="coweb_chart" title="Iteractions Chart. Click twice to hear..." style="width: 10px"></td>
                 </tr>
             </table>
             <div id="controls">
@@ -53,7 +56,12 @@
                     <label for="iteractionsValue">Iter = </label>
                     <input id="iteractionsValue" name="iteractionsValue" value="100" class="spinner">
                 </div>
-                <div id="rowR" class="row_controls">
+                <div id="rowDraw" class="row_controls">
+                    <label for="drawValue">Draw </label>
+                    <input id="drawValue" name="drawValue" value="10" class="spinner">
+                    <label>%</label>
+                </div>
+                <div id="rowSkip" class="row_controls">
                     <label for="skipValue">Skip first </label>
                     <input id="skipValue" name="rValue" value="0" class="spinner">
                     <label>%</label>
