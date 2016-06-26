@@ -122,6 +122,7 @@ class Plotter {
 			_plot(i);
 		}
 	}
+	
 	redraw(generator) {
 		if (DEBUG) var t0 = Date.now();
 

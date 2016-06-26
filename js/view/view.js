@@ -135,7 +135,7 @@ function changeStep(spinnerId, decreaseStep) {
  * @param {string} id - Component id
  * @param {string} valueName - value to be associated to Spinner.
  * @param {number} max - The maximum allowed value
- * @returns {Spinner} The created Spinner to handle FLoat values.
+ * @returns {logisticspinner} The created Spinner to handle FLoat values.
  */
 function initFloatSpinner(id, valueName, max) {
 
@@ -184,7 +184,7 @@ function initFloatSpinner(id, valueName, max) {
  * @param {number} min - The minimum allowed value
  * @param {number} max - The maximum allowed value
  * @param {number} step - The size of the step to take when spinning
- * @returns {Spinner} The created Spinner to handle integer values.
+ * @returns {spinner} The created Spinner to handle integer values.
  */
 function initIntSpinner(id, valueName, min, max, step) {
 	return $(`#${id}`).spinner({

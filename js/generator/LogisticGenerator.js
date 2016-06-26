@@ -1,10 +1,28 @@
 "use strict";
 
+/**
+ * Generate the values of a Logistic series.
+ */
 class LogisticGenerator {
 	
+	/**
+	 * Create a new Logistic Generator.
+	 * 
+	 * @param {LogisticParameters} parameters Generator Parameters
+	 */
 	constructor(parameters = new LogisticParameters()) {
+		/**
+		 * @member {LogisticParameters} the Observable Generator Parameters
+		 */
 		this.parameters = toObservable(parameters);
+		/**
+		 * @member Values of the Logistic series.
+		 * @type {Array}
+		 */
 		this.values = [];
+		/**
+		 * @member F
+		 */
 		this.listeners = [];
 		
 		this.parameters.addObserver((evt) => this.generate());
