@@ -8,7 +8,7 @@ class BifurcationPlotter extends Plotter {
 		this.plot.xAxis.scale(0.0, 1).ticks(0.1, 0, 0).title("").end()
 
 		this.adjustParameters = {
-			posXLabels: 520,
+			posXLabels: 505,
 			fontSize: 11,
 			adjustLabels: (index, element) => {
 				let el = $(element);
@@ -20,6 +20,8 @@ class BifurcationPlotter extends Plotter {
 			}
 		};
 		super._adjustChart();
+
+		this.height = $(`#${this.chartId} g.background`).attr("height");
 
 		var _chart = this.chart;
 		var _plot = this.plot;
