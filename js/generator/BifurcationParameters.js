@@ -29,8 +29,9 @@ class BifurcationParameters {
 		/**
 		 * {number}
 		 */
-		const step = this.drawPercent * this.numMaxOfYPoints * (this.rMax - this.rMin) / 100;		
-		console.log(this.drawPercent, step);
+		var numPoints = this.numMaxOfYPoints * this.drawPercent / 100;
+		const step =  (this.rMax - this.rMin) / numPoints;		
+		console.log(this.drawPercent, numPoints, step);
 		let r = this.rMin;
 		while (r < this.rMax) {
 			yield r;

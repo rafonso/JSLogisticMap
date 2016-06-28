@@ -77,7 +77,10 @@ function initPlotter(generator) {
 	generator.addObserver((evt) => console.log(generator.parameters));
 	let series = [];
 	generator.addListener((evt) => {
-		if(evt.status === RUNNING) {
+		if(evt.status === STARTING) {
+			console.log(evt);
+			series = [];
+		} else if(evt.status === RUNNING) {
 			series.push(evt.serie);
 		} else {
 			console.log(evt);
