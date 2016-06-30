@@ -37,7 +37,7 @@ class IteractionsPlotter extends Plotter {
 	}
 
 	generateSerie(generator) {
-		return generator.values;
+		return {serie: generator.values, length: generator.values.length};
 	}
 
 	emitSound() {

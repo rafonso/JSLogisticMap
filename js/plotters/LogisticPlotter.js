@@ -75,19 +75,29 @@ class LogisticPlotter extends Plotter {
 	}
 
 	generateSerie(generator) {
-		let logistic = new Array(2 * generator.values.length - 2);
+		let continueGeneralCase = (index) => index < generator.values.length;
+
+		let continueConvergence = (index, value) => continueGeneralCase(index) && (Math.abs(x -generator.convergence) > DELTA);
+
+		let length = 2 * generator.values.length - 2
+		let logistic = new Array(length);
 		let x = generator.values[0];
 		let y = 0;
 		logistic[0] = { x, y };
-		for (var i = 1; i < generator.values.length; i++) {
+		let continueSerie = (generator.convergence)? continueConvergence: continueGeneralCase;
+
+		for (var i = 1; continueSerie(i, x); i++) {
 			y = generator.values[i];
 			logistic[2 * i - 1] = { x, y: x };
 			logistic[2 * i] = { x, y };
 			x = y;
 		}
 		logistic.splice(1, 1); // workaround
+		if(generator.convergence) {
+			logistic.length = i;
+		}
 
-		return logistic;
+		return {serie: logistic, length};
 	}
 
 	saveChart() {
