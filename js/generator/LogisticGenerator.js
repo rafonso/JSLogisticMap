@@ -98,10 +98,10 @@ class LogisticGenerator {
 		if (this.parameters.r < 1) {
 			strategy = convergeToConstant(0);
 			this.convergenceType = CONVERGENT;
-		} else if (this.parameters.r <= 3) {
+		} else if (this.parameters.r < 3) {
 			strategy = convergeToConstant((this.parameters.r - 1) / this.parameters.r);
 			this.convergenceType = CONVERGENT;
-		} else if (this.parameters.r <= LIMIT_CYCLE_2) {
+		} else if (this.parameters.r < LIMIT_CYCLE_2) {
 			strategy = cycle2
 			this.convergenceType = CYCLE_2;
 		} else {
