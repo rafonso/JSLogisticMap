@@ -77,14 +77,20 @@ class LogisticPlotter extends Plotter {
 	generateSerie(generator) {
 		let continueGeneralCase = (index) => index < generator.values.length;
 		let continueConvergence = (index, value) => continueGeneralCase(index) && (Math.abs(value - generator.convergence) > DELTA);
+		let continueCycle2 = (index, value) => continueGeneralCase(index) && (generator.values[index - 2] !== generator.convergence[1]);
 
-		let hasConvergence = (generator.convergence || generator.convergence  === 0);
+		let continueSerie = continueGeneralCase;
+		if (generator.convergenceType === CONVERGENT) {
+			continueSerie = continueConvergence;
+		} else if (generator.convergenceType === CYCLE_2) {
+			continueSerie = continueCycle2;
+		}
+
 		let logistic = new Array(2 * generator.values.length - 2);
 		let x = generator.values[0];
 		let y = 0;
-		logistic[0] = { x, y };
-		let continueSerie = hasConvergence? continueConvergence: continueGeneralCase;
 
+		logistic[0] = { x, y };
 		for (var i = 1; continueSerie(i, x); i++) {
 			y = generator.values[i];
 			logistic[2 * i - 1] = { x, y: x };
@@ -92,11 +98,39 @@ class LogisticPlotter extends Plotter {
 			x = y;
 		}
 		logistic.splice(1, 1); // workaround
-		if(hasConvergence) {
-			logistic.length = i;
-		}
 
-		return {serie: logistic, length};
+		return { serie: logistic, length };
+	}
+
+	redraw(generator) {
+		super.redraw(generator);
+
+		// Remove the prior (if exisits) point of convergence.
+		$("#logisticChart circle").remove();
+		if (generator.parameters.r < 3) {
+			// Adds the point of convergence
+			this.chart.point(
+				this.plot.xToChart(generator.convergence),
+				this.plot.yToChart(generator.convergence),
+				{ stroke: 'red' });
+		} else if (generator.convergenceType === CYCLE_2) {
+			// Draws the cycle of convergence.
+			const path = this.chart.createPath();
+
+			path.moveTo(this.plot.xToChart(generator.convergence[0]), this.plot.yToChart(generator.convergence[0]))
+				.line(this.plot.xToChart(generator.convergence[1]), this.plot.yToChart(generator.convergence[0]))
+				.line(this.plot.xToChart(generator.convergence[1]), this.plot.yToChart(generator.convergence[1]))
+				.line(this.plot.xToChart(generator.convergence[0]), this.plot.yToChart(generator.convergence[1]))
+				.line(this.plot.xToChart(generator.convergence[0]), this.plot.yToChart(generator.convergence[0]));
+			this.chart.path(this.foreground, path, {
+				id: "cycle2",
+				fill: 'none',
+				stroke: 'red',
+				strokeWidth: 1,
+				class: this.id
+			});
+
+		}
 	}
 
 	saveChart() {

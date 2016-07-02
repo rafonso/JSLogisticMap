@@ -118,7 +118,7 @@ class Plotter {
 		let self = this;
 		const stageSize = parseInt(length / 5);
 
-		for (var i = 1; i < serie.length; i++) {
+		for (var i = 1; i < serie.length && !!serie[i]; i++) {
 			_plot(i);
 		}
 	}
