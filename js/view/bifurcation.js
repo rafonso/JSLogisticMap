@@ -84,7 +84,7 @@ function initPlotter(generator) {
 			series.push(evt.serie);
 		} else {
 			console.log(evt);
-			console.log(series);
+			bifurcationPlotter.redraw(generator);
 		}
 	});
 
@@ -100,7 +100,7 @@ function initPlotter(generator) {
 	callSound = () => iteractionsPlotter.emitSound();
 	saveLogistic = () => logisticPlotter.saveChart();
 */
-	return null; //{iteractionsPlotter, logisticPlotter};
+	return bifurcationPlotter; //{iteractionsPlotter, logisticPlotter};
 }
 
 $(document).ready(() => {
@@ -108,7 +108,8 @@ $(document).ready(() => {
 	let generator = initGenerator();
 	bindControls(generator);
 	//	let {iteractionsPlotter, logisticPlotter} = 
-	initPlotter(generator);
+	let plotter = initPlotter(generator);
 
-//	generator.generate();
+	generator.generate();
+//	plotter.redraw(generator);
 });

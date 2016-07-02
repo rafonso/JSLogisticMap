@@ -112,6 +112,7 @@ class LogisticPlotter extends Plotter {
 			this.chart.point(
 				this.plot.xToChart(generator.convergence),
 				this.plot.yToChart(generator.convergence),
+				1,
 				{ stroke: 'red' });
 		} else if (generator.convergenceType === CYCLE_2) {
 			// Draws the cycle of convergence.

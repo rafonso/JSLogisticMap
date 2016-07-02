@@ -85,27 +85,27 @@ class Plotter {
 		$(`#${this.chartId} svg svg > text`).remove();
 	}
 
+	_calculateColor(i, stageSize, serie) {
+		const pos = (i / stageSize);
+		const stage = pos | 0;
+		const color = this.heatTrace.get(stage);
+
+		const r = color.r(pos) | 0;
+		const g = color.g(pos) | 0;
+		const b = color.b(pos) | 0;
+		const a = this.drawFunctions.alpha(serie, i);
+
+		return `rgba(${r}, ${g}, ${b}, ${a})`;
+	}
+
 	_drawSerie(serie) {
 
 		let self = this;
 		const stageSize = parseInt(serie.length / 5);
 
-		function calculateColor(i) {
-			const pos = (i / stageSize);
-			const stage = pos | 0;
-			const color = self.heatTrace.get(stage);
-
-			const r = color.r(pos) | 0;
-			const g = color.g(pos) | 0;
-			const b = color.b(pos) | 0;
-			const a = self.drawFunctions.alpha(serie, i);
-
-			return `rgba(${r}, ${g}, ${b}, ${a})`;
-		}
-
 		function _plot(i) {
 			const path = self.chart.createPath();
-			const color = calculateColor(i);
+			const color = self._calculateColor(i, stageSize, serie);
 
 			path.moveTo(self.plot.xToChart(self.drawFunctions.getX(serie, i - 1)), self.plot.yToChart(self.drawFunctions.getY(serie, i - 1)));
 			path.line(self.plot.xToChart(self.drawFunctions.getX(serie, i)), self.plot.yToChart(self.drawFunctions.getY(serie, i)));

@@ -22,8 +22,8 @@ $.extend($.svg._wrapperClass.prototype, {
 		@param [parent] {SVGElement|jQuery} The parent node for the new node, or SVG root if not specified.
 		@return {SVGElement} The new circle node. 
 	*/
-	point: function (cx, cy, settings, parent) {
-		return this.circle(parent, cx, cy, 1, settings);
+	point: function (cx, cy, r, settings, parent) {
+		return this.circle(parent, cx, cy, r, settings);
 	},
 });
 
