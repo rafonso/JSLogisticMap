@@ -85,7 +85,10 @@ class Plotter {
 		$(`#${this.chartId} svg svg > text`).remove();
 	}
 
-	_drawSerie(serie, length) {
+	_drawSerie(serie) {
+
+		let self = this;
+		const stageSize = parseInt(serie.length / 5);
 
 		function calculateColor(i) {
 			const pos = (i / stageSize);
@@ -115,10 +118,7 @@ class Plotter {
 			});
 		}
 
-		let self = this;
-		const stageSize = parseInt(length / 5);
-
-		for (var i = 1; i < serie.length && !!serie[i]; i++) {
+		for (let i = 1; i < serie.length && !!serie[i]; i++) {
 			_plot(i);
 		}
 	}
@@ -128,8 +128,8 @@ class Plotter {
 
 		this._clean();
 		this.prepareDraw(generator);
-		let {serie, length} = this.generateSerie(generator);
-		this._drawSerie(serie, length);
+		let serie = this.generateSerie(generator);
+		this._drawSerie(serie);
 		this.plot.redraw();
 		this._adjustChart();
 

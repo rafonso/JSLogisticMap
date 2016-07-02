@@ -99,7 +99,7 @@ class LogisticPlotter extends Plotter {
 		}
 		logistic.splice(1, 1); // workaround
 
-		return { serie: logistic, length };
+		return logistic;
 	}
 
 	redraw(generator) {
