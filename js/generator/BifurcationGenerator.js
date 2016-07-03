@@ -1,7 +1,19 @@
 "use strict";
 
+/**
+ * @const {symbol}
+ * @description Indicates That the BifurcationGenerator will start to generate the serie.
+ */
 const STARTING = Symbol("STARTING");
+/**
+ * @const {symbol}
+ * @description Indicates That the BifurcationGenerator is generating the serie.
+ */
 const RUNNING = Symbol("RUNNING");
+/**
+ * @const {symbol}
+ * @description Indicates That the BifurcationGenerator just ended to generate the serie.
+ */
 const READY = Symbol("READY");
 
 /**
@@ -16,10 +28,14 @@ class BifurcationGenerator {
 	constructor(parameters = new BifurcationParameters()) {
 		this.parameters = toObservable(parameters);
 
+		/**
+		 * @member {Map} The series of values to be generated. The key is the R value, 
+		 * while the values are the values created by logistic equation for R value.
+		 */
 		this.series = new Map();
 
 		/**
-		 * @member F
+		 * @member {array} listeners of this Generator.
 		 */
 		this.listeners = [];
 
@@ -40,7 +56,6 @@ class BifurcationGenerator {
 				convergenceType: logisticGenerator.convergenceType, 
 				convergence: logisticGenerator.convergence, 
 				values: logisticGenerator.values}
-			serie.values.splice(0, qtyToRemove);
 
 			self.series.set(r, serie);
 			self._notifyListeners({status: RUNNING, serie});
@@ -48,7 +63,6 @@ class BifurcationGenerator {
 
 		var t0 = Date.now();
 
-		var qtyToRemove = (this.parameters.iteractions / 100 * this.parameters.skipFirstPercent) | 0;
 		this.series.clear();
 		this._notifyListeners({status: STARTING});
 		for (let r of this.parameters.rValues()) {

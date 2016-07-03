@@ -19,7 +19,6 @@ class BifurcationPlotter extends Plotter {
 				}
 			}
 		};
-		//		super._adjustChart();
 
 		const a0 = 0.5;
 		const aMax = 0.95;
@@ -47,11 +46,11 @@ class BifurcationPlotter extends Plotter {
 	}
 
 	redraw(generator) {
-		let pointConvergence = (serie, x) => this.chart.point(
+		let plotPoint = (x, rChart, radius, color) => this.chart.point(
 			this.plot.xToChart(x),
-			this.plot.yToChart(serie.r),
-			0.5,
-			{ stroke: "red" });
+			rChart,
+			radius,
+			{ stroke: color });
 
 		let notConverged = new Map([
 			[CONVERGENT, (serie, i) => (serie.values[i] === serie.convergence)],
@@ -60,15 +59,14 @@ class BifurcationPlotter extends Plotter {
 		]);
 
 		let drawConvergence = new Map([
-			[CONVERGENT, (serie) => {
-				pointConvergence(serie, serie.convergence);
+			[CONVERGENT, (serie, rChart) => {
+				plotPoint(serie.convergence, rChart, 0.2, "red");
 			}],
-			[CYCLE_2, (serie) => {
-				pointConvergence(serie, serie.convergence[0]);
-				pointConvergence(serie, serie.convergence[1]);
+			[CYCLE_2, (serie, rChart) => {
+				plotPoint(serie.convergence[0], rChart, 0.2, "red");
+				plotPoint(serie.convergence[1], rChart, 0.2, "red");
 			}],
-			[CHAOS, (serie) => {
-
+			[CHAOS, (serie, rChart) => {
 			}]
 		]);
 
@@ -76,28 +74,21 @@ class BifurcationPlotter extends Plotter {
 		var t0 = Date.now();
 
 		this._clean();
-		// Remove the prior (if exisits) point of convergence.
+		// Remove all prior points
 		$(`#${this.chartId} circle`).remove();
-		//		this.prepareDraw(generator);
 
-		//		let serie = this.generateSerie(generator);
-		//		this._drawSerie(serie);
-
+		const inicialI = (generator.parameters.iteractions * generator.parameters.skipFirstPercent / 100) | 0;
 		generator.series.forEach((serie, r) => {
 			const stageSize = parseInt(serie.values.length / 5);
 			let points = new Array(serie.values.length);
 			let stop = notConverged.get(serie.convergenceType);
-			for (var i = 0; i < serie.values.length && !stop(serie, i); i++) {
-				this.chart.point(
-					this.plot.xToChart(serie.values[i]),
-					this.plot.yToChart(serie.r),
-					0.1,
-					{ stroke: this._calculateColor(i, stageSize, serie.values) });
+			let rChart = this.plot.yToChart(serie.r);
+			for (var i = inicialI; i < serie.values.length && !stop(serie, i); i++) {
+				plotPoint(serie.values[i], rChart, 0.1, this._calculateColor(i, stageSize, serie.values));
 			}
 
 			this._drawSerie(points);
-			drawConvergence.get(serie.convergenceType)(serie);
-			//			console.log(points);
+			drawConvergence.get(serie.convergenceType)(serie, rChart);
 		});
 
 		this.plot.redraw();
