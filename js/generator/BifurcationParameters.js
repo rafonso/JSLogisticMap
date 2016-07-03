@@ -25,12 +25,15 @@ class BifurcationParameters {
 		this.rMax = rMax;
 	}
 
+	/**
+	 * Creates a Iterator which will run all possible values for r.
+	 */
 	* rValues() {
 		/**
 		 * {number}
 		 */
 		var numPoints = this.numMaxOfYPoints * this.drawPercent / 100;
-		const step =  (this.rMax - this.rMin) / numPoints;		
+		const step = (this.rMax - this.rMin) / numPoints;
 		console.log(this.drawPercent, numPoints, step);
 		let r = this.rMin;
 		while (r < this.rMax) {

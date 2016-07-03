@@ -64,27 +64,31 @@ function bindControls(generator) {
 	};
 
 	$("#x0Value").logisticspinner(params);
-	$("#iteractionsValue").spinner(params);
-	$("#drawValue").spinner(params);
-	$("#skipValue").spinner(params);
+	$("#iteractionsValue, #drawValue, #skipValue").spinner(params);
 }
 
 function initPlotter(generator) {
-	let bifurcationPlotter = new BifurcationPlotter(); 
+	let bifurcationPlotter = new BifurcationPlotter();
 	generator.parameters.numMaxOfYPoints = ($("#bifurcationChart g.background rect").attr("height") | 0);
 
 	generator.parameters.addObserver((evt) => console.log(`Changing parameter ${evt.property} to ${evt.newValue}`, generator.parameters));
-	generator.addObserver((evt) => console.log(generator.parameters));
-	let series = [];
 	generator.addListener((evt) => {
-		if(evt.status === STARTING) {
+		if (evt.status === STARTING) {
 			console.log(evt);
-			series = [];
-		} else if(evt.status === RUNNING) {
-			series.push(evt.serie);
+
+			$("#x0Value").logisticspinner("disable");
+			$("#iteractionsValue, #drawValue, #skipValue").spinner("disable");
+
+			bifurcationPlotter.clean();
+		} else if (evt.status === RUNNING) {
+			bifurcationPlotter.plotSerie(evt.serie, generator)
 		} else {
+			bifurcationPlotter.plotComplete();
+
+			$("#x0Value").logisticspinner("enable");
+			$("#iteractionsValue, #drawValue, #skipValue").spinner("enable");
+
 			console.log(evt);
-			bifurcationPlotter.redraw(generator);
 		}
 	});
 
@@ -107,9 +111,7 @@ $(document).ready(() => {
 	initControls();
 	let generator = initGenerator();
 	bindControls(generator);
-	//	let {iteractionsPlotter, logisticPlotter} = 
 	let plotter = initPlotter(generator);
 
 	generator.generate();
-//	plotter.redraw(generator);
 });
