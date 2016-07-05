@@ -1,3 +1,4 @@
+/*jshint -W079 */
 "use strict";
 
 const DELTA = 1 / 10000;
@@ -39,10 +40,26 @@ class LogisticGenerator {
 
 		this.convergence = NaN;
 
-		this.parameters.addObserver((evt) => this.generate());
+		this.convergencePosition = NaN;
+
+		this.parameters.addObserver((evt) => {
+			/*
+			console.log(evt);
+			if (evt.property === 'iteractions' && (evt.oldValue > evt.newValue)) {
+				this.generate(evt.oldValue);
+			} else if (evt.property === 'iteractions' && (evt.oldValue < evt.newValue)) {
+				this.generate(evt.oldValue);
+			} else {
+			}
+			*/
+				this.generate();
+		});
 	}
 
-	generate() {
+
+
+
+	generate(initialI = 0) {
 
 		let logistic = (x) => this.parameters.r * x * (1 - x);
 
@@ -57,8 +74,8 @@ class LogisticGenerator {
 				val.fill(convergence, i);
 			}
 
-			return [val, convergence];
-		}
+			return [val, convergence, i];
+		};
 
 		let cycle2 = () => {
 			var root = Math.sqrt((this.parameters.r - 3) * (this.parameters.r - 1));
@@ -73,6 +90,7 @@ class LogisticGenerator {
 			}
 
 			let convergence = [val[i - 1], val[i - 2]];
+			let convergencePos = i;
 
 			let convpos = 1;
 			while (i < val.length) {
@@ -81,8 +99,8 @@ class LogisticGenerator {
 				i++;
 			}
 
-			return [val, convergence];
-		}
+			return [val, convergence, convergencePos];
+		};
 
 		let generalCase = () => {
 			let val = new Array(this.parameters.iteractions);
@@ -91,8 +109,8 @@ class LogisticGenerator {
 				val[i] = x;
 				x = logistic(x);
 			}
-			return [val, NaN];
-		}
+			return [val, NaN, NaN];
+		};
 
 		let strategy;
 		if (this.parameters.r < 1) {
@@ -102,7 +120,7 @@ class LogisticGenerator {
 			strategy = convergeToConstant((this.parameters.r - 1) / this.parameters.r);
 			this.convergenceType = CONVERGENT;
 		} else if (this.parameters.r < LIMIT_CYCLE_2) {
-			strategy = cycle2
+			strategy = cycle2;
 			this.convergenceType = CYCLE_2;
 		} else {
 			strategy = generalCase;
@@ -114,6 +132,7 @@ class LogisticGenerator {
 		let result = strategy();
 		this.values = result[0];
 		this.convergence = result[1];
+		this.convergencePosition = result[2];
 
 		if (DEBUG) console.log("generate", this.parameters, (Date.now() - t0));
 

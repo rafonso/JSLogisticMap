@@ -1,3 +1,4 @@
+"use strict";
 /**
  * @file Add extensions to JQuery UI Spinner and SVG.
  */

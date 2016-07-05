@@ -76,22 +76,16 @@ class LogisticPlotter extends Plotter {
 
 	generateSerie(generator) {
 		let continueGeneralCase = (index) => index < generator.values.length;
-		let continueConvergence = (index, value) => continueGeneralCase(index) && (Math.abs(value - generator.convergence) > DELTA);
-		let continueCycle2 = (index, value) => continueGeneralCase(index) && (generator.values[index - 2] !== generator.convergence[1]);
+		let continueConvergence = (index) => continueGeneralCase(index) && (index < generator.convergencePosition); // (Math.abs(value - generator.convergence) > DELTA);
 
-		let continueSerie = continueGeneralCase;
-		if (generator.convergenceType === CONVERGENT) {
-			continueSerie = continueConvergence;
-		} else if (generator.convergenceType === CYCLE_2) {
-			continueSerie = continueCycle2;
-		}
+		let continueSerie = (generator.convergenceType === CHAOS)? continueGeneralCase: continueConvergence;
 
 		let logistic = new Array(2 * generator.values.length - 2);
 		let x = generator.values[0];
 		let y = 0;
 
 		logistic[0] = { x, y };
-		for (var i = 1; continueSerie(i, x); i++) {
+		for (var i = 1; continueSerie(i); i++) {
 			y = generator.values[i];
 			logistic[2 * i - 1] = { x, y: x };
 			logistic[2 * i] = { x, y };
@@ -107,7 +101,7 @@ class LogisticPlotter extends Plotter {
 
 		// Remove the prior (if exisits) point of convergence.
 		$("#logisticChart circle").remove();
-		if (generator.parameters.r < 3) {
+		if (generator.convergenceType === CONVERGENT) {
 			// Adds the point of convergence
 			this.chart.point(
 				this.plot.xToChart(generator.convergence),

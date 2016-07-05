@@ -5,7 +5,35 @@
 	"devel": true,
 	"jquery": true,
 	"worker": true,
-/*	"globals": true, */
-	"predef": ["_", "toObservable"],
+	"freeze": true,
+	"prototypejs": true,
+	/*	"globals": true, */
+	"predef": [
+		"_",
+		"toObservable",
+		"keys",
+		"Plotter",
+		"actionsByKey",
+		"initFloatSpinner",
+		"initIntSpinner",
+		"BifurcationGenerator",
+		"BifurcationParameters",
+		"BifurcationPlotter",
+		"IteractionsPlotter",
+		"LogisticGenerator",
+		"LogisticParameters",
+		"LogisticPlotter",
+		"STARTING", 
+		"RUNNING",
+		"DEBUG",
+		"numberFormat",
+		"s",
+		"CONVERGENT",
+		"CYCLE_2",
+		"CHAOS",
+		"saveSvgAsPng",
+		"MessageToWorker",
+		"AudioContext"
+	],
 	"undef": true
 }
