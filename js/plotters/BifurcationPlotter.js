@@ -36,18 +36,19 @@ class BifurcationPlotter extends Plotter {
 		]);
 
 		this.drawConvergence = new Map([
-			[CONVERGENT, (serie, rChart) => {
-				self._plotPoint(serie.convergence, rChart, 0.2, "red");
+			[CONVERGENT, (serie, r, rChart) => {
+				self._plotPoint(serie.convergence, r, rChart, 0.2, "red");
 			}],
-			[CYCLE_2, (serie, rChart) => {
-				self._plotPoint(serie.convergence[0], rChart, 0.2, "red");
-				self._plotPoint(serie.convergence[1], rChart, 0.2, "red");
+			[CYCLE_2, (serie, r, rChart) => {
+				self._plotPoint(serie.convergence[0], r, rChart, 0.2, "red");
+				self._plotPoint(serie.convergence[1], r, rChart, 0.2, "red");
 			}],
 			[CHAOS, (serie, rChart) => {
 			}]
 		]);
 
-		this.plot.bind("mousemove", function (event) {
+		this.plot
+		.bind("mousemove", function (event) {
 			$("#bifurcationLegend").remove();
 			var x = self.plot.chartToX(event.offsetX);
 			var y = self.plot.chartToY(event.offsetY);
@@ -55,14 +56,13 @@ class BifurcationPlotter extends Plotter {
 				let g = self.chart.group("bifurcationLegend");
 				self.chart.text(g, 25, 10, `(${s.numberFormat(x, 3)}, ${s.numberFormat(y, 3)})`);
 			}
-		});
-		this.plot.bind("mouseleave", function (event) {
+		}).bind("mouseleave", function (event) {
 			$("#bifurcationLegend").remove();
 		});
 	}
 
-	_plotPoint(x, rChart, radius, color) {
-		this.chart.point(this.plot.xToChart(x), rChart, radius, { stroke: color });
+	_plotPoint(x, r, rChart, radius, color) {
+		this.chart.point(this.plot.xToChart(x), rChart, radius, { id:`r_${r}_x_${x}`, stroke: color, fill: color });
 	}
 
 	clean() {
@@ -78,14 +78,15 @@ class BifurcationPlotter extends Plotter {
 		let rChart = this.plot.yToChart(serie.r);
 		
 		for (var i = inicialI; i < serie.values.length && !stop(serie, i); i++) {
-			this._plotPoint(serie.values[i], rChart, 0.1, this._calculateColor(i, stageSize, serie.values));
+			this._plotPoint(serie.values[i], serie.r, rChart, 0.1, this._calculateColor(i, stageSize, serie.values));
 		}
-		this.drawConvergence.get(serie.convergenceType)(serie, rChart);
+		this.drawConvergence.get(serie.convergenceType)(serie, serie.r, rChart);
 	}
 
 	plotComplete() {
 		this.plot.redraw();
 		this._adjustChart();
+		$("#bifurcationChart circle").appendTo($("#bifurcationChart g.foreground"));
 	}
 
 
