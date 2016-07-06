@@ -1,14 +1,33 @@
 /*jshint -W079 */
 "use strict";
 
+/**
+ * Constant used as parameter to stop the generation for r < LIMIT_CYCLE_2.
+ *  minimum diference between a generated value and
+ */
 const DELTA = 1 / 10000;
 
+/**
+ * Limit value for r before the logisti series start to jump from a serie of 2 values to chaos.
+ */
 const LIMIT_CYCLE_2 = 1 + Math.sqrt(6);
 
+/**
+ * Indicates that a series converges to a specific value. It happens when r < 3. {@link LIMIT_CYCLE_2}.
+ * @see {@link LogisticGenerator#convergenceType}
+ */
 const CONVERGENT = Symbol("CONERGENCE");
 
+/**
+ * Indicates that a series converges to cycle of 2 values. It happens when 3 <= r < {@link LIMIT_CYCLE_2}.
+ * @see {@link LogisticGenerator#convergenceType}
+ */
 const CYCLE_2 = Symbol("CYCLE_2");
 
+/**
+ * Indicates that a series does not converge. It happens when r >= {@link LIMIT_CYCLE_2}.
+ * @see {@link LogisticGenerator#convergenceType}
+ */
 const CHAOS = Symbol("CHAOS");
 
 /**
@@ -32,9 +51,11 @@ class LogisticGenerator {
 		 */
 		this.values = [];
 		/**
-		 * @member F
+		 * @member Listeners of values generation.
+		 * @see {@link #addListener}
 		 */
 		this.listeners = [];
+
 
 		this.convergenceType = null;
 
@@ -43,33 +64,84 @@ class LogisticGenerator {
 		this.convergencePosition = NaN;
 
 		this.parameters.addObserver((evt) => {
-			/*
-			console.log(evt);
-			if (evt.property === 'iteractions' && (evt.oldValue > evt.newValue)) {
-				this.generate(evt.oldValue);
-			} else if (evt.property === 'iteractions' && (evt.oldValue < evt.newValue)) {
-				this.generate(evt.oldValue);
+			if (evt.property === 'iteractions') {
+				this.values.length = evt.newValue;
+				if (evt.newValue < evt.oldValue) {
+					// do nothing, 
+				} else if (this.convergenceType === CONVERGENT) {
+					this.values.fill(this.convergence, evt.oldValue);
+				} else if (this.convergenceType === CYCLE_2) {
+					this._fillCycle2(this.values, evt.oldValue, this.convergence);
+				} else {
+					// TODO:insr this.convergenceType === CHAOS
+					this.generate(evt.oldValue);
+				}
+				this._notifyListeners();
 			} else {
-			}
-			*/
 				this.generate();
+			}
 		});
 	}
 
+	/**
+	 * Notify the generation values listeners.
+	 */
+	_notifyListeners() {
+		this.listeners.forEach(l => l.class[l.method](this));
+	}
 
+	/**
+	 * 
+	 * 
+	 * @param {Array} arr
+	 * @param {number} start
+	 * @param {array} convergenceValues
+	 */
+	_fillCycle2(arr, start, convergenceValues) {
+		let convpos = (arr[start - 1] == convergenceValues[0]) ? 1 : 0;
+		for (var i = start; i < arr.length; i++) {
+			arr[i] = convergenceValues[convpos];
+			convpos = convpos ? 0 : 1;
+		}
+	}
 
+	/**
+	 * Calculates the next term of logistic series.
+	 * 
+	 * @param {number} x the prior term of logistic series.
+	 * @returns {number} the next term of logistic series.
+	 */
+	_logistic(x) {
+		return this.parameters.r * x * (1 - x);
+	}
 
+	/**
+	 * 
+	 * 
+	 * @param {boolean} [converged=() => false] the function which will determinate if the series converged or not.
+	 * @param {number} [initialI=0] The initial position of iteraction.
+	 * @returns
+	 */
+	_generateValues(converged = () => false, initialI = 0) {
+		let val = new Array(this.parameters.iteractions);
+		let x = this.parameters.x0;
+		for (var i = initialI; i < this.parameters.iteractions && !converged(val, x, i); i++) {
+			val[i] = x;
+			x = this._logistic(x);
+		}
+
+		return { val, i };
+	}
+
+	/**
+	 * 
+	 * 
+	 * @param {number} [initialI=0]
+	 */
 	generate(initialI = 0) {
 
-		let logistic = (x) => this.parameters.r * x * (1 - x);
-
 		let convergeToConstant = (convergence) => () => {
-			let val = new Array(this.parameters.iteractions);
-			var x = this.parameters.x0;
-			for (var i = 0; i < this.parameters.iteractions && (Math.abs(x - convergence) > DELTA); i++) {
-				val[i] = x;
-				x = logistic(x);
-			}
+			let {val, i} = this._generateValues((arr, x, index) => (Math.abs(x - convergence) < DELTA));
 			if (i < this.parameters.iteractions) {
 				val.fill(convergence, i);
 			}
@@ -78,37 +150,16 @@ class LogisticGenerator {
 		};
 
 		let cycle2 = () => {
-			var root = Math.sqrt((this.parameters.r - 3) * (this.parameters.r - 1));
-			var term1 = this.parameters.r + 1;
-			var divisor = 2 * this.parameters.r;
-
-			let val = new Array(this.parameters.iteractions);
-			var x = this.parameters.x0;
-			for (var i = 0; i < this.parameters.iteractions && (i < 2 || (Math.abs(x - val[i - 2]) > DELTA)); i++) {
-				val[i] = x;
-				x = logistic(x);
-			}
-
+			let {val, i} = this._generateValues((arr, x, index) => (index >= 2 && (Math.abs(x - arr[index - 2]) < DELTA)));
 			let convergence = [val[i - 1], val[i - 2]];
-			let convergencePos = i;
+			this._fillCycle2(val, i, convergence);
 
-			let convpos = 1;
-			while (i < val.length) {
-				val[i] = convergence[convpos];
-				convpos = convpos ? 0 : 1;
-				i++;
-			}
-
-			return [val, convergence, convergencePos];
+			return [val, convergence, i];
 		};
 
 		let generalCase = () => {
-			let val = new Array(this.parameters.iteractions);
-			var x = this.parameters.x0;
-			for (var i = 0; i < this.parameters.iteractions; i++) {
-				val[i] = x;
-				x = logistic(x);
-			}
+			let {val, i} = this._generateValues((arr, x, index) => (false));
+
 			return [val, NaN, NaN];
 		};
 
@@ -127,7 +178,7 @@ class LogisticGenerator {
 			this.convergenceType = CHAOS;
 		}
 
-		if (DEBUG) var t0 = Date.now();
+		var t0 = Date.now();
 
 		let result = strategy();
 		this.values = result[0];
@@ -136,7 +187,7 @@ class LogisticGenerator {
 
 		if (DEBUG) console.log("generate", this.parameters, (Date.now() - t0));
 
-		this.listeners.forEach(l => l.class[l.method](this));
+		this._notifyListeners();
 	}
 
 	addListener(listener) {
