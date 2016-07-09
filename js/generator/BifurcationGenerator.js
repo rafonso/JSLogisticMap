@@ -1,3 +1,4 @@
+/*jshint -W079 */
 "use strict";
 
 /**
@@ -55,7 +56,7 @@ class BifurcationGenerator {
 			let serie = {r, x0: self.parameters.x0, iteractions: self.parameters.iteractions, 
 				convergenceType: logisticGenerator.convergenceType, 
 				convergence: logisticGenerator.convergence, 
-				values: logisticGenerator.values}
+				values: logisticGenerator.values};
 
 			self.series.set(r, serie);
 			self._notifyListeners({status: RUNNING, serie});

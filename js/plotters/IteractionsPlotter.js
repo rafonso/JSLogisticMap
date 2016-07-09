@@ -14,6 +14,7 @@ class IteractionsPlotter extends Plotter {
 			getY: (series, i) => series[i],
 			alpha: (series, i) => 1
 		};
+
 		this.adjustParameters = {
 			posXLabels: 99,
 			fontSize: 10,
@@ -41,8 +42,15 @@ class IteractionsPlotter extends Plotter {
 	}
 
 	emitSound() {
+		let self = this;
 
-		// Performance note: The bottleneck here is when it was change the color (stroke). 
+		/**
+		 * 
+		 Performance note: The bottleneck here is when it was change the color (stroke). 
+		 * 
+		 * @param {any} i
+		 * @param {any} colorPrior
+		 */
 		function beep(i, colorPrior) {
 			if (colorPrior) {
 				$(paths[i - 1]).attr("stroke", colorPrior).attr("stroke-width", 1);
@@ -61,7 +69,6 @@ class IteractionsPlotter extends Plotter {
 			}
 		}
 
-		let self = this;
 		let paths = $(`#iteractionsChart g.foreground path`);
 
 		let context = new AudioContext();

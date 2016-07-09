@@ -1,7 +1,7 @@
-"use strict";
 /**
  * @file Add extensions to JQuery UI Spinner and SVG.
  */
+"use strict";
 
 /**
  * Creates a LogistiSpinner extending the JQuery UI Spinner, Adding handling float values.
