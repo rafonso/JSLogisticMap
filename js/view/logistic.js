@@ -26,8 +26,8 @@ actionsByKey.set(keys.r.decrement, (hasShift) => {
 });
 
 function initControls() {
-	initFloatSpinner("rValue", "r", 4.0);
-	initFloatSpinner("x0Value", "x0", 1.0);
+	initFloatSpinner("rValue", "r", R_MAX);
+	initFloatSpinner("x0Value", "x0", X_MAX);
 	initIntSpinner("iteractionsValue", "iteractions", 50, 2000, 50);
 }
 
@@ -61,9 +61,12 @@ function initPlotters(worker) {
 		try {
 			if (DEBUG && !e.hasOwnProperty('isTrusted')) console.info(JSON.stringify(e));
 			if (!!e.data) {
-				console.log(e.data);
-				logisticPlotter.redraw(e.data);
-				iteractionsPlotter.redraw(e.data);
+
+				var tL = logisticPlotter.redraw(e.data);
+				if(DEBUG) console.info(`Logistic: ${tL}`);
+				
+				var tI = iteractionsPlotter.redraw(e.data);
+				if(DEBUG) console.info(`Iteractions: ${tI}`);
 			} else {
 				if (DEBUG) console.info(e.data);
 			}

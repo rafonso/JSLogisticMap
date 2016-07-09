@@ -27,14 +27,14 @@ class LogisticPlotter extends Plotter {
 			}
 		};
 
-		this.plot.xAxis.scale(0.0, 1.0).ticks(0.1, 0, 0).title("").end()
-			.addFunction("linear", (x) => x, [0, 1], 1, "GoldenRod", 2);
+		this.plot.xAxis.scale(X_MIN, X_MAX).ticks(0.1, 0, 0).title("").end()
+			.addFunction("linear", (x) => x, [X_MIN, X_MAX], 1, "GoldenRod", 2);
 	}
 
 	drawParable(generator) {
-		let y0 = this.plot.yToChart(0);
-		let x0 = this.plot.xToChart(0);
-		let x1 = this.plot.xToChart(1);
+		let y0 = this.plot.yToChart(X_MIN);
+		let x0 = this.plot.xToChart(X_MIN);
+		let x1 = this.plot.xToChart(X_MAX);
 		let x_5 = this.plot.xToChart(0.5);
 		let y_5 = this.plot.yToChart(generator.parameters.r / 2);
 
@@ -61,14 +61,14 @@ class LogisticPlotter extends Plotter {
 		$("#logisticLegend").remove();
 		let g = this.chart.group("logisticLegend");
 		this.chart.text(g, 30, 20, `Iteractions = ${generator.parameters.iteractions}`);
-		this.chart.text(g, 30, 32, `R = ${s.numberFormat(generator.parameters.r, (this.magnitude['r'] + 1))}`);
-		this.chart.text(g, 30, 44, `x0 = ${s.numberFormat(generator.parameters.x0, (this.magnitude['x0'] + 1))}`);
+		this.chart.text(g, 30, 32, `R = ${s.numberFormat(generator.parameters.r, (this.magnitude.r + 1))}`);
+		this.chart.text(g, 30, 44, `x0 = ${s.numberFormat(generator.parameters.x0, (this.magnitude.x0 + 1))}`);
 		$("#chart .foreground").prepend($("#logisticLegend"));
 	}
 
 
 	prepareDraw(generator) {
-		this.fileName = `x0=${s.numberFormat(generator.parameters.x0, (this.magnitude['x0'] + 1))},r=${s.numberFormat(generator.parameters.r, (this.magnitude['r'] + 1))},it=${generator.parameters.iteractions}.png`;
+		this.fileName = `x0=${s.numberFormat(generator.parameters.x0, (this.magnitude.x0 + 1))},r=${s.numberFormat(generator.parameters.r, (this.magnitude.r + 1))},it=${generator.parameters.iteractions}.png`;
 
 		this.drawParable(generator);
 		this.writeLegends(generator);
@@ -97,8 +97,9 @@ class LogisticPlotter extends Plotter {
 	}
 
 	redraw(generator) {
-		super.redraw(generator);
+		var t1 = super.redraw(generator);
 
+		var t0 = Date.now();
 		// Remove the prior (if exisits) point of convergence.
 		$("#logisticChart circle").remove();
 		if (generator.convergenceType === CONVERGENT) {
@@ -125,6 +126,8 @@ class LogisticPlotter extends Plotter {
 				class: this.id
 			});
 		}
+
+		return t1 + (Date.now() - t0);
 	}
 
 	saveChart() {

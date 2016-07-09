@@ -27,7 +27,6 @@ class LogisticGenerator {
 		 */
 		this.listeners = [];
 
-
 		this.convergenceType = null;
 
 		this.convergence = NaN;
@@ -41,13 +40,13 @@ class LogisticGenerator {
 					// do nothing, 
 				} else if (this.convergenceType === CONVERGENT) {
 					this.values.fill(this.convergence, evt.oldValue);
+					this._notifyListeners();
 				} else if (this.convergenceType === CYCLE_2) {
 					this._fillCycle2(this.values, evt.oldValue, this.convergence);
+					this._notifyListeners();
 				} else {
-					// TODO:insr this.convergenceType === CHAOS
 					this.generate(evt.oldValue);
 				}
-				this._notifyListeners();
 			} else {
 				this.generate();
 			}

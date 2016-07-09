@@ -3,15 +3,6 @@
  */
 "use strict";
 
-/**
- * activates debubbing.
- * 
- * @const
- * @type {boolean}
- * @default
- */
-const DEBUG = false;
-
 let magnitude = toObservable({
 	steps: [0.1, 0.01, 0.001, 0.0001, 0.00001],
 	r: 0,

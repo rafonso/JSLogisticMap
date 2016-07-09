@@ -33,7 +33,17 @@
 		"CHAOS",
 		"saveSvgAsPng",
 		"MessageToWorker",
-		"AudioContext"
+		"AudioContext",
+		"DELTA",
+		"LIMIT_CYCLE_2",
+		"DELTA",
+		"CONVERGENT",
+		"CYCLE_2",
+		"CHAOS",
+		"X_MIN", 
+		"X_MAX",
+		"R_MIN",
+		"R_MAX"
 	],
 	"undef": true
 }

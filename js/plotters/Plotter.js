@@ -15,7 +15,7 @@ class Plotter {
 		this.id = id;
 		this.chartId = `${id}Chart`;
 		this.chart = $(`#${this.chartId}`).svg(initChart).svg("get");
-		this.plot = this.chart.plot
+		this.plot = this.chart.plot;
 		this.foreground = $(`#${this.chartId} g.foreground`).svg("get");
 
 /*
@@ -28,8 +28,7 @@ class Plotter {
 				r: (pos) => (75 * (- pos + 1)),
 				g: (pos) => 0,
 				b: (pos) => (125 * pos + 130)
-			}]
-			,
+			}],
 			[1, { // From Blue [rgb(  0,   0, 255)] to Green [rgb(  0, 255,   0)]
 				r: (pos) => 0,
 				g: (pos) => (255 * (+ pos - 1)),
@@ -123,8 +122,14 @@ class Plotter {
 		}
 	}
 	
+	/**
+	 * 
+	 * 
+	 * @param {any} generator
+	 * @returns
+	 */
 	redraw(generator) {
-		if (DEBUG) var t0 = Date.now();
+		var t0 = Date.now();
 
 		this._clean();
 		this.prepareDraw(generator);
@@ -133,7 +138,7 @@ class Plotter {
 		this.plot.redraw();
 		this._adjustChart();
 
-		if (DEBUG) console.log('\t', this.id, (Date.now() - t0));
+		return (Date.now() - t0);
 	}
 
 	_clean() {
