@@ -18,11 +18,6 @@ class Plotter {
 		this.plot = this.chart.plot;
 		this.foreground = $(`#${this.chartId} g.foreground`).svg("get");
 
-/*
-		this.plot.bind("click", function(event) {
-			console.log(event.offsetX, plot.chartToX(event.offsetX), event.offsetY, plot.chartToY(event.offsetY));
-		})
-*/
 		this.heatTrace = new Map([
 			[0, { // From Indigo [rgb( 75,   0, 130)] to Blue [rgb(  0,   0, 255)]
 				r: (pos) => (75 * (- pos + 1)),
@@ -123,10 +118,10 @@ class Plotter {
 	}
 	
 	/**
+	 * regenerate the chart.
 	 * 
-	 * 
-	 * @param {any} generator
-	 * @returns
+	 * @param {LogisticGenerator} generator
+	 * @returns {number} the time (in milliseconds) to regenerate the chart.
 	 */
 	redraw(generator) {
 		var t0 = Date.now();
