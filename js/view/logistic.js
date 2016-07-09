@@ -3,6 +3,8 @@
  */
 "use strict";
 
+let worker = {};
+
 keys.r = {
 	title: "R",
 	increment: 'T',
@@ -29,22 +31,17 @@ function initControls() {
 	initIntSpinner("iteractionsValue", "iteractions", 50, 2000, 50);
 }
 
-function initGenerator() {
-	let generator = toObservable(new LogisticGenerator(new LogisticParameters(
-		$("#rValue").logisticspinner("value"),
-		$("#x0Value").logisticspinner("value"),
-		$("#iteractionsValue").spinner("value"))));
-
-	return generator;
-}
-
-function bindControls(generator) {
+function bindControls() {
 
 	let refreshCharts = (event, ui) => {
 		if (_.isNumber(ui.value)) {
-			generator.parameters[$(`#${event.target.id}`).data("valueName")] = ui.value;
+			worker.postMessage({
+				type: MessageToWorker.PARAMETER,
+				property: $(`#${event.target.id}`).data("valueName"),
+				value: ui.value
+			});
 		}
-	}
+	};
 
 	let params = {
 		spin: refreshCharts,
@@ -56,26 +53,73 @@ function bindControls(generator) {
 	$("#iteractionsValue").spinner(params);
 }
 
-function initPlotter(generator) {
+function initPlotters(worker) {
 	let logisticPlotter = new LogisticPlotter(magnitude);
 	let iteractionsPlotter = new IteractionsPlotter();
 
-
-	generator.addListener({ class: logisticPlotter, method: "redraw" });
-	generator.addListener({ class: iteractionsPlotter, method: "redraw" });
+	worker.onmessage = function (e) {
+		try {
+			if (DEBUG && !e.hasOwnProperty('isTrusted')) console.info(JSON.stringify(e));
+			if (!!e.data) {
+				console.log(e.data);
+				logisticPlotter.redraw(e.data);
+				iteractionsPlotter.redraw(e.data);
+			} else {
+				if (DEBUG) console.info(e.data);
+			}
+		} catch (err) {
+			if (DEBUG) console.error(err);
+		}
+	};
 
 	magnitude.addObserver((evt) => logisticPlotter.magnitude = magnitude);
 	callSound = () => iteractionsPlotter.emitSound();
 	saveLogistic = () => logisticPlotter.saveChart();
+}
 
-	return { iteractionsPlotter, logisticPlotter };
+function handleWorkerMessage(e) {
+	try {
+		if (DEBUG && !e.hasOwnProperty('isTrusted')) console.info(JSON.stringify(e));
+		if (!!e.data.type) {
+			actionByMessageFromSolver(e.data);
+		} else {
+			if (DEBUG) console.info(e.data);
+		}
+	} catch (err) {
+		if (DEBUG) console.error(err);
+	}
+}
+
+/**
+ * Initialize WebWorker.
+ */
+function initWorker() {
+	if (!!window.Worker) {
+		worker = new Worker('js/workers/logisticWorker.js');
+		//		worker.onmessage = handleWorkerMessage;
+		return worker;
+	} else {
+		$("#rValue").logisticspinner("disable");
+		$("#x0Value").logisticspinner("disable");
+		$("#iteractionsValue").spinner("disable");
+		throw "Browser not compatible. Web Worker is not present.";
+	}
 }
 
 $(document).ready(() => {
 	initControls();
+	bindControls();
+	let worker = initWorker();
+	initPlotters(worker);
+	worker.postMessage({
+		type: MessageToWorker.INIT,
+		r: $("#rValue").logisticspinner("value"),
+		x0: $("#x0Value").logisticspinner("value"),
+		iteractions: $("#iteractionsValue").spinner("value")
+	});
+	/*
 	let generator = initGenerator();
-	bindControls(generator);
-	let {iteractionsPlotter, logisticPlotter} = initPlotter(generator);
-
+	
 	generator.generate();
+	*/
 });

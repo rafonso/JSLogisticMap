@@ -124,7 +124,6 @@ class LogisticPlotter extends Plotter {
 				strokeWidth: 1,
 				class: this.id
 			});
-
 		}
 	}
 
