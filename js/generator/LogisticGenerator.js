@@ -45,17 +45,12 @@ class LogisticGenerator {
 	}
 
 	_iteractionsChanged(evt) {
-		this.values.length = evt.newValue;
 		if (evt.newValue > evt.oldValue) {
-			if (this.convergenceType === CONVERGENT) {
-				this.values.fill(this.convergence, evt.oldValue);
-			} else if (this.convergenceType === CYCLE_2) {
-				this._fillCycle2(this.values, evt.oldValue, this.convergence);
-			} else {
-				this.generate(evt.oldValue);
-			}
+			this.generate(evt.oldValue);
+		} else {
+			this.values.length = evt.newValue;
+			this._notifyListeners();
 		}
-		this._notifyListeners();
 	}
 
 	/**
@@ -73,10 +68,12 @@ class LogisticGenerator {
 	 * @param {array} convergenceValues
 	 */
 	_fillCycle2(arr, start, convergenceValues) {
-		let convpos = (arr[start - 1] == convergenceValues[0]) ? 1 : 0;
-		for (var i = start; i < arr.length; i++) {
-			arr[i] = convergenceValues[convpos];
-			convpos = convpos ? 0 : 1;
+		if(convergenceValues) {
+			let convpos = (arr[start - 1] == convergenceValues[0]) ? 1 : 0;
+			for (var i = start; i < arr.length; i++) {
+				arr[i] = convergenceValues[convpos];
+				convpos = convpos ? 0 : 1;
+			}
 		}
 	}
 
@@ -111,20 +108,27 @@ class LogisticGenerator {
 	_convergeToConstant(convergence) {
 		return () => {
 			let {val, i} = this._generateValues((arr, x, index) => (Math.abs(x - convergence) < DELTA));
+			let convPos = Number.MAX_VALUE;
 			if (i < this.parameters.iteractions) {
 				val.fill(convergence, i);
+				convPos = i;
 			}
 
-			return [val, convergence, i];
+			return [val, convergence, convPos];
 		};
 	}
 
 	_cycle2() {
 		let {val, i} = this._generateValues((arr, x, index) => (index >= 2 && (Math.abs(x - arr[index - 2]) < DELTA)));
-		let convergence = [val[i - 1], val[i - 2]];
-		this._fillCycle2(val, i, convergence);
+		let convergence = null;
+		let convPos = Number.MAX_VALUE;
+		if (i < this.parameters.iteractions) {
+			convPos = i;
+			convergence = [val[convPos -1], val[convPos-2]];
+			this._fillCycle2(val, i, convergence);
+		}
 
-		return [val, convergence, i];
+		return [val, convergence, convPos];
 	}
 
 	_generalCase() {

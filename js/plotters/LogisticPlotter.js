@@ -31,6 +31,37 @@ class LogisticPlotter extends Plotter {
 			.addFunction("linear", (x) => x, [X_MIN, X_MAX], 1, "GoldenRod", 2);
 	}
 
+	_handleConvergence(generator) {
+		if(generator.convergencePosition < generator.values.length) {
+			// Adds the point of convergence
+			this.chart.point(
+				this.plot.xToChart(generator.convergence),
+				this.plot.yToChart(generator.convergence),
+				1,
+				{ stroke: 'red' });
+		}
+	}
+
+	_handleCycle2(generator) {
+		if(generator.convergencePosition < generator.values.length) {
+			// Draws the cycle of convergence.
+			const path = this.chart.createPath();
+
+			path.moveTo(this.plot.xToChart(generator.convergence[0]), this.plot.yToChart(generator.convergence[0]))
+				.line(this.plot.xToChart(generator.convergence[1]), this.plot.yToChart(generator.convergence[0]))
+				.line(this.plot.xToChart(generator.convergence[1]), this.plot.yToChart(generator.convergence[1]))
+				.line(this.plot.xToChart(generator.convergence[0]), this.plot.yToChart(generator.convergence[1]))
+				.line(this.plot.xToChart(generator.convergence[0]), this.plot.yToChart(generator.convergence[0]));
+			this.chart.path(this.foreground, path, {
+				id: "cycle2",
+				fill: 'none',
+				stroke: 'red',
+				strokeWidth: 1,
+				class: this.id
+			});
+		}
+	}
+
 	drawParable(generator) {
 		let y0 = this.plot.yToChart(X_MIN);
 		let x0 = this.plot.xToChart(X_MIN);
@@ -76,7 +107,7 @@ class LogisticPlotter extends Plotter {
 
 	generateSerie(generator) {
 		let continueGeneralCase = (index) => index < generator.values.length;
-		let continueConvergence = (index) => continueGeneralCase(index) && (index < generator.convergencePosition); // (Math.abs(value - generator.convergence) > DELTA);
+		let continueConvergence = (index) => continueGeneralCase(index) && (index < generator.convergencePosition) && generator.values[index]; // (Math.abs(value - generator.convergence) > DELTA);
 
 		let continueSerie = (generator.convergenceType === CHAOS)? continueGeneralCase: continueConvergence;
 
@@ -103,28 +134,9 @@ class LogisticPlotter extends Plotter {
 		// Remove the prior (if exisits) point of convergence.
 		$("#logisticChart circle").remove();
 		if (generator.convergenceType === CONVERGENT) {
-			// Adds the point of convergence
-			this.chart.point(
-				this.plot.xToChart(generator.convergence),
-				this.plot.yToChart(generator.convergence),
-				1,
-				{ stroke: 'red' });
+			this._handleConvergence(generator);
 		} else if (generator.convergenceType === CYCLE_2) {
-			// Draws the cycle of convergence.
-			const path = this.chart.createPath();
-
-			path.moveTo(this.plot.xToChart(generator.convergence[0]), this.plot.yToChart(generator.convergence[0]))
-				.line(this.plot.xToChart(generator.convergence[1]), this.plot.yToChart(generator.convergence[0]))
-				.line(this.plot.xToChart(generator.convergence[1]), this.plot.yToChart(generator.convergence[1]))
-				.line(this.plot.xToChart(generator.convergence[0]), this.plot.yToChart(generator.convergence[1]))
-				.line(this.plot.xToChart(generator.convergence[0]), this.plot.yToChart(generator.convergence[0]));
-			this.chart.path(this.foreground, path, {
-				id: "cycle2",
-				fill: 'none',
-				stroke: 'red',
-				strokeWidth: 1,
-				class: this.id
-			});
+			this._handleCycle2(generator);
 		}
 
 		return t1 + (Date.now() - t0);
