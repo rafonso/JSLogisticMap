@@ -33,24 +33,29 @@ class LogisticGenerator {
 
 		this.convergencePosition = NaN;
 
-		this.parameters.addObserver((evt) => {
-			if (evt.property === 'iteractions') {
-				this.values.length = evt.newValue;
-				if (evt.newValue < evt.oldValue) {
-					// do nothing, 
-				} else if (this.convergenceType === CONVERGENT) {
-					this.values.fill(this.convergence, evt.oldValue);
-					this._notifyListeners();
-				} else if (this.convergenceType === CYCLE_2) {
-					this._fillCycle2(this.values, evt.oldValue, this.convergence);
-					this._notifyListeners();
-				} else {
-					this.generate(evt.oldValue);
-				}
+		this.parameters.addObserver((evt) => this._parametersChanged(evt));
+	}
+
+	_parametersChanged(evt) {
+		if (evt.property === 'iteractions') {
+			this._iteractionsChanged(evt);
+		} else {
+			this.generate();
+		}
+	}
+
+	_iteractionsChanged(evt) {
+		this.values.length = evt.newValue;
+		if (evt.newValue > evt.oldValue) {
+			if (this.convergenceType === CONVERGENT) {
+				this.values.fill(this.convergence, evt.oldValue);
+			} else if (this.convergenceType === CYCLE_2) {
+				this._fillCycle2(this.values, evt.oldValue, this.convergence);
 			} else {
-				this.generate();
+				this.generate(evt.oldValue);
 			}
-		});
+		}
+		this._notifyListeners();
 	}
 
 	/**
@@ -97,10 +102,57 @@ class LogisticGenerator {
 		let x = this.parameters.x0;
 		for (var i = initialI; i < this.parameters.iteractions && !converged(val, x, i); i++) {
 			val[i] = x;
-			x = this._logistic(x);
+			x =  this.parameters.r * x * (1 - x);
 		}
 
 		return { val, i };
+	}
+
+	_convergeToConstant(convergence) {
+		return () => {
+			let {val, i} = this._generateValues((arr, x, index) => (Math.abs(x - convergence) < DELTA));
+			if (i < this.parameters.iteractions) {
+				val.fill(convergence, i);
+			}
+
+			return [val, convergence, i];
+		};
+	}
+
+	_cycle2() {
+		let {val, i} = this._generateValues((arr, x, index) => (index >= 2 && (Math.abs(x - arr[index - 2]) < DELTA)));
+		let convergence = [val[i - 1], val[i - 2]];
+		this._fillCycle2(val, i, convergence);
+
+		return [val, convergence, i];
+	}
+
+	_generalCase() {
+		let {val, i} = this._generateValues((arr, x, index) => (false));
+
+		return [val, NaN, NaN];
+	}
+
+	_getStrategy() {
+		let strategy = this._generalCase;
+		if (this.parameters.r < 3) {
+			let limit = (this.parameters.r < 1)? 0: ((this.parameters.r - 1) / this.parameters.r);
+			strategy = this._convergeToConstant(limit);
+		} else if (this.parameters.r < LIMIT_CYCLE_2) {
+			strategy = this._cycle2;
+		}
+
+		return strategy;
+	}
+
+	_getConvergenceType() {
+		let type = CHAOS;
+		if (this.parameters.r < 3) {
+			type = CONVERGENT;
+		} else if (this.parameters.r < LIMIT_CYCLE_2) {
+			type = CYCLE_2;
+		}
+		return type;
 	}
 
 	/**
@@ -109,51 +161,12 @@ class LogisticGenerator {
 	 * @param {number} [initialI=0]
 	 */
 	generate(initialI = 0) {
+		let strategy = this._getStrategy();
 
-		let convergeToConstant = (convergence) => () => {
-			let {val, i} = this._generateValues((arr, x, index) => (Math.abs(x - convergence) < DELTA));
-			if (i < this.parameters.iteractions) {
-				val.fill(convergence, i);
-			}
-
-			return [val, convergence, i];
-		};
-
-		let cycle2 = () => {
-			let {val, i} = this._generateValues((arr, x, index) => (index >= 2 && (Math.abs(x - arr[index - 2]) < DELTA)));
-			let convergence = [val[i - 1], val[i - 2]];
-			this._fillCycle2(val, i, convergence);
-
-			return [val, convergence, i];
-		};
-
-		let generalCase = () => {
-			let {val, i} = this._generateValues((arr, x, index) => (false));
-
-			return [val, NaN, NaN];
-		};
-
-		let strategy;
-		if (this.parameters.r < 1) {
-			strategy = convergeToConstant(0);
-			this.convergenceType = CONVERGENT;
-		} else if (this.parameters.r < 3) {
-			strategy = convergeToConstant((this.parameters.r - 1) / this.parameters.r);
-			this.convergenceType = CONVERGENT;
-		} else if (this.parameters.r < LIMIT_CYCLE_2) {
-			strategy = cycle2;
-			this.convergenceType = CYCLE_2;
-		} else {
-			strategy = generalCase;
-			this.convergenceType = CHAOS;
-		}
-
+		this.convergenceType = this._getConvergenceType();
 		var t0 = Date.now();
 
-		let result = strategy();
-		this.values = result[0];
-		this.convergence = result[1];
-		this.convergencePosition = result[2];
+		[this.values, this.convergence, this.convergencePosition] = strategy.apply(this);
 
 		if (DEBUG) console.log("generate", this.parameters, (Date.now() - t0));
 
